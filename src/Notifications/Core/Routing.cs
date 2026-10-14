@@ -14,8 +14,9 @@ public interface INoticeOut
 public static class NoticeRoute
 {
     /// <summary>
-    /// Whether the game must still show its own popup or toast. It is held back only when a toast stood in for it;
-    /// a toast that could not be raised leaves it to the game, and the history keeps a copy so nothing is lost.
+    /// Whether the game's own popup or toast stays with the player. False only when a toast stood in for it (a game
+    /// toast is then skipped, a popup closed once up); a toast that could not be raised leaves it to the game, and the
+    /// history keeps a copy so nothing is lost.
     /// </summary>
     public static bool IsGameShowing(GameToastHandling handling, Note note, Reopen? reopen, INoticeOut notices)
     {

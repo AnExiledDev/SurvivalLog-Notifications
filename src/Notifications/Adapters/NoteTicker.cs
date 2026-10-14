@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Notifications.Adapters;
 
 /// <summary>
-/// Each frame: follows which save is loaded, writes the history when it is due, and talks to the phone app. A failure
-/// is logged the first time it is seen and the next frame carries on.
+/// Each frame: follows which save is loaded, writes the history when it is due, talks to the phone app, and closes the
+/// popups a toast stood in for. A failure is logged the first time it is seen and the next frame carries on.
 /// </summary>
 public sealed class NoteTicker : MonoBehaviour
 {
@@ -15,6 +15,7 @@ public sealed class NoteTicker : MonoBehaviour
 
     internal static Ledger? Ledger;
     internal static PhoneApp? Phone;
+    internal static PopupCloser? Closer;
     internal static Action<string> Log = _ => { };
 
     private static readonly HashSet<string> ReportedFailures = new();
@@ -34,6 +35,8 @@ public sealed class NoteTicker : MonoBehaviour
         }
 
         if (Phone is { } phone) Step("updating the phone app", () => phone.Tick(now));
+
+        if (Closer is { } closer) Step("closing popups a toast stood in for", closer.Tick);
     }
 
     private void OnApplicationQuit()

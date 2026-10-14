@@ -8,9 +8,10 @@ using UnityEngine;
 namespace Notifications.Adapters;
 
 /// <summary>
-/// A drone coming home raises "Drone delivery arrived", and the game's unload popup for its cargo is held back: the
-/// toast opens it when clicked. The popup may come during the settle or after it, so the toast is raised after the
-/// settle and given the popup whenever the popup turns up. Static because a Harmony patch has nowhere else to look.
+/// A drone coming home raises "Drone delivery arrived", and the game's unload popup for its cargo is closed once it is
+/// up: the toast opens it again when clicked. The popup may come during the settle or after it, so the toast is raised
+/// after the settle and given the popup whenever the popup turns up. Static because a Harmony patch has nowhere else to
+/// look.
 /// </summary>
 internal static class DroneHooks
 {
@@ -30,8 +31,8 @@ internal static class DroneHooks
     }
 
     /// <summary>
-    /// Whether a received-items popup is a waiting drone's unload, which the drone's toast then stands for. False lets
-    /// the popup go its usual way.
+    /// Whether a received-items popup is a waiting drone's unload, which the drone's toast then stands for, so the popup
+    /// is to be closed once up. False lets the popup go its usual way.
     /// </summary>
     public static bool TakeUnload(Reopen.Items items)
     {
@@ -77,7 +78,7 @@ internal static class DroneHooks
         }
     }
 
-    /// <summary>Runs whether or not the settle ran; a drone that did not land holds no popup back.</summary>
+    /// <summary>Runs whether or not the settle ran; a drone that did not land leaves its popup up.</summary>
     private static void AfterSettle(DroneTripComponent trip)
     {
         var arrival = _settling;
@@ -113,8 +114,12 @@ internal static class DroneHooks
         if (arrival.Popup is { } popup) desk.OpenPopup(popup);
     }
 
+    /// <summary>
+    /// A popup already claimed was claimed in this same settle, so its close is still pending and dropping it leaves the
+    /// popup up; one already closed is opened again.
+    /// </summary>
     private static void Release(NoticeDesk desk, DroneAwait.Arrival arrival)
     {
-        if (Await.GiveUp(arrival) is { } popup) desk.OpenPopup(popup);
+        if (Await.GiveUp(arrival) is { } popup && !desk.KeepOpen(PopupKind.Items)) desk.OpenPopup(popup);
     }
 }

@@ -116,8 +116,8 @@ public sealed class DroneAwait
     }
 
     /// <summary>
-    /// The drone did not land after all, or its toast could not be shown, so no popup of it may be held back: it stops
-    /// waiting, and a popup it already claimed comes back to be opened.
+    /// The drone did not land after all, or its toast could not be shown, so its popup stays with the player: it stops
+    /// waiting, and a popup it already claimed comes back to be left up or opened again.
     /// </summary>
     public Reopen.Items? GiveUp(Arrival arrival)
     {

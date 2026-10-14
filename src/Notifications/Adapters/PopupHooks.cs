@@ -10,10 +10,11 @@ using GameIntList = Il2CppSystem.Collections.Generic.List<int>;
 namespace Notifications.Adapters;
 
 /// <summary>
-/// The game popups that only show something and close: each becomes a toast that opens it again when clicked. A prefix
-/// skips the game's popup only once the toast is up; anything else, a failure included, lets the game open it. The
-/// popups that ask the player to choose (events, and picking items up with Pick All) are never hooked. Static because a
-/// Harmony patch has nowhere else to look.
+/// The game popups that only show something and close: each becomes a toast that opens it again when clicked. The game
+/// always opens its popup, as skipping it left the game waiting on a popup that never closed (an eaten craved food never
+/// finished); once the toast is up, the popup is closed again through the game's own close action. Anything else, a
+/// failure included, leaves the popup up. The popups that ask the player to choose (events, and picking items up with
+/// Pick All) are never hooked. Static because a Harmony patch has nowhere else to look.
 /// </summary>
 internal static class PopupHooks
 {
@@ -56,11 +57,11 @@ internal static class PopupHooks
         }
     }
 
-    private static bool BeforeWish(int ItemConfigId, int FaithValue, int SurvivalValue, int BuffId, int WishPoolId)
+    private static void BeforeWish(int ItemConfigId, int FaithValue, int SurvivalValue, int BuffId, int WishPoolId)
     {
-        if (Reopener.IsReopening || _desk is not { } desk) return true;
+        if (Reopener.IsReopening || _desk is not { } desk) return;
 
-        return desk.IsGameShowing("wish popup", desk.ForPopup(desk.Switches.WishFulfilled), () =>
+        StandIn(desk, PopupKind.Wish, desk.Switches.WishFulfilled, () =>
         {
             var wish = new Reopen.Wish(ItemConfigId, FaithValue, SurvivalValue, BuffId, WishPoolId);
             var words = new GameWords();
@@ -73,9 +74,9 @@ internal static class PopupHooks
     /// Only full popups are taken; the small pickup pops stay the game's. A drone's unload goes to the drone's toast
     /// first; any other received-items popup follows its own switch.
     /// </summary>
-    private static bool BeforeItems(GameItemList ItemGetList, GameIntList ItemKinds, int BumperCount, int SuperCount, string Presentation, string Desc)
+    private static void BeforeItems(GameItemList ItemGetList, GameIntList ItemKinds, int BumperCount, int SuperCount, string Presentation, string Desc)
     {
-        if (Reopener.IsReopening || _desk is not { } desk || !ItemPopup.IsFull(Presentation)) return true;
+        if (Reopener.IsReopening || _desk is not { } desk || !ItemPopup.IsFull(Presentation)) return;
 
         Reopen.Items items;
 
@@ -87,21 +88,20 @@ internal static class PopupHooks
         {
             desk.Fail("reading a received-items popup", ex);
 
-            return true;
+            return;
         }
 
-        if (items.Stacks.Count == 0) return true;
+        if (items.Stacks.Count == 0) return;
 
-        if (DroneHooks.TakeUnload(items)) return false;
-
-        return desk.IsGameShowing("received-items popup", desk.ForPopup(desk.Switches.ItemsReceived), () => (NoteTexts.Items(new GameWords(), items), items));
+        if (DroneHooks.TakeUnload(items)) desk.CloseOnceOpen(PopupKind.Items);
+        else StandIn(desk, PopupKind.Items, desk.Switches.ItemsReceived, () => (NoteTexts.Items(new GameWords(), items), items));
     }
 
-    private static bool BeforeWave(int waveIndex, int killCount, int deviceDamage, int structureDamage, string rewardText)
+    private static void BeforeWave(int waveIndex, int killCount, int deviceDamage, int structureDamage, string rewardText)
     {
-        if (Reopener.IsReopening || _desk is not { } desk) return true;
+        if (Reopener.IsReopening || _desk is not { } desk) return;
 
-        return desk.IsGameShowing("zombie wave report", desk.ForPopup(desk.Switches.WaveReport), () =>
+        StandIn(desk, PopupKind.Wave, desk.Switches.WaveReport, () =>
         {
             var wave = new Reopen.Wave(waveIndex, killCount, deviceDamage, structureDamage, rewardText);
 
@@ -109,11 +109,11 @@ internal static class PopupHooks
         });
     }
 
-    private static bool BeforeSkill(ProficiencyLevelUpInfo info)
+    private static void BeforeSkill(ProficiencyLevelUpInfo info)
     {
-        if (Reopener.IsReopening || _desk is not { } desk) return true;
+        if (Reopener.IsReopening || _desk is not { } desk) return;
 
-        return desk.IsGameShowing("skill level-up popup", desk.ForPopup(desk.Switches.SkillLevelUp), () =>
+        StandIn(desk, PopupKind.Skill, desk.Switches.SkillLevelUp, () =>
         {
             if (info == null) return null;
 
@@ -121,6 +121,12 @@ internal static class PopupHooks
 
             return (NoteTexts.Skill(new GameWords(), skill), skill);
         });
+    }
+
+    /// <summary>Raises the toast; when it stood in for the popup the game is about to open, that popup is closed once up.</summary>
+    private static void StandIn(NoticeDesk desk, PopupKind kind, bool isSwitchOn, Func<(Note Note, Reopen? Reopen)?> build)
+    {
+        if (!desk.IsGameShowing(PopupKinds.Name(kind), desk.ForPopup(isSwitchOn), build)) desk.CloseOnceOpen(kind);
     }
 
     private static Reopen.Items ReadItems(GameItemList? list, GameIntList? kinds, int bumperCount, int superCount, string? presentation, string? desc)

@@ -14,14 +14,16 @@ internal sealed class NoticeDesk : INoticeOut
 {
     private readonly Ledger _ledger;
     private readonly ToastBridge _toasts;
+    private readonly PopupCloser _closer;
     private readonly Action<string> _log;
     private readonly HashSet<string> _reportedFailures = new();
 
-    public NoticeDesk(Switches switches, Ledger ledger, ToastBridge toasts, Action<string> log)
+    public NoticeDesk(Switches switches, Ledger ledger, ToastBridge toasts, PopupCloser closer, Action<string> log)
     {
         Switches = switches;
         _ledger = ledger;
         _toasts = toasts;
+        _closer = closer;
         _log = log;
     }
 
@@ -34,8 +36,9 @@ internal sealed class NoticeDesk : INoticeOut
         AreToastsShown() is { } areShown ? Handling.GameToast(isGroupOn, Switches.KeepGameToastLook, areShown) : GameToastHandling.Leave;
 
     /// <summary>
-    /// Sends one popup or game toast where the handling says, and answers whether the game must still show its own.
-    /// A notice that cannot be read is left to the game, so a failure here never loses one.
+    /// Sends one popup or game toast where the handling says, and answers whether the game must still show its own:
+    /// false when a toast stood in for it. A notice that cannot be read is left to the game, so a failure here never
+    /// loses one.
     /// </summary>
     public bool IsGameShowing(string what, GameToastHandling handling, Func<(Note Note, Reopen? Reopen)?> build)
     {
@@ -62,8 +65,17 @@ internal sealed class NoticeDesk : INoticeOut
 
     public void Attach(long toastId, Reopen reopen) => _toasts.Attach(toastId, reopen);
 
+    /// <summary>A toast stood in for this popup: the game still opens it, and it is closed once it is up.</summary>
+    public void CloseOnceOpen(PopupKind kind) => _closer.CloseOnceOpen(kind);
+
+    /// <summary>The popup stays up for the player after all. Whether a close was pending.</summary>
+    public bool KeepOpen(PopupKind kind) => _closer.KeepOpen(kind);
+
+    /// <summary>A popup the player asks for again is theirs, so a close still pending for its kind is dropped.</summary>
     public void OpenPopup(Reopen reopen)
     {
+        KeepOpen(PopupKinds.Of(reopen));
+
         if (Reopener.Open(reopen) is { } failure) _log($"could not open the {reopen.GetType().Name} popup again: {failure}");
     }
 

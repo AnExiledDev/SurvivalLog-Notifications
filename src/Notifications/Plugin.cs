@@ -21,7 +21,8 @@ public sealed class Plugin : BasePlugin
         var log = new NoteLog(Log, Path.Combine(Paths.BepInExRootPath, "notifications.log"));
         var ledger = new Ledger(new HistoryFiles(Path.Combine(Paths.ConfigPath, "notifications")), log.Write);
         var bridge = new ToastBridge(ledger, log.Write);
-        var desk = new NoticeDesk(switches, ledger, bridge, log.Write);
+        var closer = new PopupCloser(log.Write);
+        var desk = new NoticeDesk(switches, ledger, bridge, closer, log.Write);
         var harmony = new Harmony(Guid);
 
         log.Write($"===== Notifications {Version} started: {switches.Describe()}");
@@ -37,6 +38,7 @@ public sealed class Plugin : BasePlugin
         NoteTicker.Log = log.Write;
         NoteTicker.Ledger = ledger;
         NoteTicker.Phone = new PhoneApp(ledger, desk, log.Write);
+        NoteTicker.Closer = closer;
 
         AddComponent<NoteTicker>();
     }
