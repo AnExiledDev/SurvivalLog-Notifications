@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GameCore.HotUpdate.ReduxUI;
 using Il2CppInterop.Runtime;
 using Notifications.Core;
@@ -32,7 +33,19 @@ internal sealed class PopupCloser
             switch (step)
             {
                 case CloseStep.Close close:
-                    Close(close);
+                    Close(close.Kind, close.Line);
+
+                    break;
+                case CloseStep.CloseAgain again:
+                    Close(again.Kind, again.Line);
+
+                    break;
+                case CloseStep.Settled settled:
+                    _log($"{settled.Line}; {Afterwards()}");
+
+                    break;
+                case CloseStep.LeftVisible left:
+                    _log($"{left.Line}; {Afterwards()}");
 
                     break;
                 case CloseStep.GiveUp giveUp:
@@ -43,17 +56,28 @@ internal sealed class PopupCloser
         }
     }
 
-    private void Close(CloseStep.Close close)
+    private void Close(PopupKind kind, string line)
     {
+        var openBefore = OpenUiNames();
+
         try
         {
-            SendClose(close.Kind);
-            _log(close.Line);
+            SendClose(kind);
+            _log($"{line} (open when sent: {openBefore})");
         }
         catch (Exception ex)
         {
-            Fail("closing the " + PopupKinds.Name(close.Kind) + ", which stays up", ex);
+            Fail("closing the " + PopupKinds.Name(kind) + ", which stays up", ex);
         }
+    }
+
+    /// <summary>What is still up once a close has settled, to tell a stuck screen from a clean one in the log.</summary>
+    private string Afterwards()
+    {
+        var upKinds = PopupKinds.All.Where(IsUp).Select(PopupKinds.Name).ToList();
+        var popups = upKinds.Count == 0 ? "none" : string.Join(", ", upKinds);
+
+        return $"popups a toast stands in for still up: {popups}; a window that blocks hotkeys is up: {IsModalUp()}; open: {OpenUiNames()}";
     }
 
     /// <summary>The wave report gets the close Esc sends: its OK button's action sends that close from inside a reducer.</summary>
@@ -94,6 +118,48 @@ internal sealed class PopupCloser
             Fail("asking whether the " + PopupKinds.Name(kind) + " is up", ex);
 
             return false;
+        }
+    }
+
+    /// <summary>The game's own test for a window that keeps hotkeys from working: any open window Esc can close.</summary>
+    private string IsModalUp()
+    {
+        try
+        {
+            return GameSingleton.Existing<ReduxUISystem>()?.HasModalUIOpenExcept(null) switch
+            {
+                true => "yes",
+                false => "no",
+                null => "unknown",
+            };
+        }
+        catch (Exception ex)
+        {
+            Fail("asking whether a window that blocks hotkeys is up", ex);
+
+            return "unknown";
+        }
+    }
+
+    /// <summary>The game's UI names for what is open.</summary>
+    private string OpenUiNames()
+    {
+        try
+        {
+            var names = new Il2CppSystem.Collections.Generic.List<string>();
+            var listed = new List<string>();
+
+            GameSingleton.Existing<ReduxUISystem>()?.GetOpenUITypeNames(names);
+
+            for (var i = 0; i < names.Count; i++) listed.Add(names[i]);
+
+            return listed.Count == 0 ? "none" : string.Join(", ", listed);
+        }
+        catch (Exception ex)
+        {
+            Fail("listing the open windows", ex);
+
+            return "unreadable";
         }
     }
 
