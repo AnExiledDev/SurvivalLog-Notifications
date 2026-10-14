@@ -9,7 +9,7 @@ How long toasts stay on screen and where they appear are set in Exiled's Toolkit
 | Setting | Default | What it does |
 | --- | --- | --- |
 | `WishFulfilled` | `true` | Show a toast instead of the popup when a wish comes true. Click the toast, or its entry in the phone's Notifications app, to open the popup. |
-| `ItemsReceived` | `true` | Show a toast instead of the received-items popup (bumper harvests, first-time dishes, rewards). Click it to open the popup. The item pickup window with Pick All is never changed. |
+| `ItemsReceived` | `true` | Show a toast instead of the received-items popup (bumper harvests, first-time dishes, rewards). Click it to open the popup. The small pickup pops that fade by themselves stay as they are. The item pickup window with Pick All is never changed. |
 | `WaveReport` | `true` | Show a toast instead of the zombie wave report. Click it to open the report. |
 | `SkillLevelUp` | `true` | Show a toast instead of the skill level-up popup. Click it to open the popup. |
 | `DroneDelivery` | `true` | When a drone comes home, show a "Drone delivery arrived" toast instead of the unload popup. Click it to open the popup. |

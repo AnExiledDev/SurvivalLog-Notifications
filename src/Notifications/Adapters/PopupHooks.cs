@@ -69,10 +69,13 @@ internal static class PopupHooks
         });
     }
 
-    /// <summary>A drone's unload goes to the drone's toast first; any other received-items popup follows its own switch.</summary>
+    /// <summary>
+    /// Only full popups are taken; the small pickup pops stay the game's. A drone's unload goes to the drone's toast
+    /// first; any other received-items popup follows its own switch.
+    /// </summary>
     private static bool BeforeItems(GameItemList ItemGetList, GameIntList ItemKinds, int BumperCount, int SuperCount, string Presentation, string Desc)
     {
-        if (Reopener.IsReopening || _desk is not { } desk) return true;
+        if (Reopener.IsReopening || _desk is not { } desk || !ItemPopup.IsFull(Presentation)) return true;
 
         Reopen.Items items;
 

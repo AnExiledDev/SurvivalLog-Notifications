@@ -68,11 +68,11 @@ internal sealed class PhoneApp
 
                 break;
             case PageMessage.Diag diag:
-                LogOnce("phone app: " + diag.Text);
+                LogOnce("diag:" + Before(diag.Text, ':'), "phone app: " + diag.Text);
 
                 break;
             case PageMessage.Unknown unknown:
-                LogOnce("phone app sent a message this version does not know: " + unknown.Text);
+                LogOnce("unknown:" + Before(unknown.Text, '|'), "phone app sent a message this version does not know: " + unknown.Text);
 
                 break;
         }
@@ -98,13 +98,25 @@ internal sealed class PhoneApp
         catch (Exception ex)
         {
             _sync.NotSent(now);
-            LogOnce("could not reach the phone page: " + ex.Message);
+            LogOnce("run", "could not reach the phone page: " + ex.Message);
         }
     }
 
-    private void LogOnce(string line)
+    /// <summary>
+    /// One line per kind of problem, keyed on its name rather than its text: an error text that carries changing values
+    /// would otherwise log, and be kept, once per value.
+    /// </summary>
+    private void LogOnce(string kind, string line)
     {
-        if (_reported.Add(line)) _log(line);
+        if (_reported.Add(kind)) _log(line);
+    }
+
+    /// <summary>The name a message starts with: the page's problem before its ':', or a message's verb before its '|'.</summary>
+    private static string Before(string text, char mark)
+    {
+        var at = text.IndexOf(mark);
+
+        return at < 0 ? text : text.Substring(0, at);
     }
 
     /// <summary>Read on first need: most launches send it once.</summary>

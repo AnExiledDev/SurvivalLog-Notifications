@@ -27,9 +27,11 @@ internal sealed class NoticeDesk : INoticeOut
 
     public Switches Switches { get; }
 
-    public GameToastHandling ForPopup(bool isSwitchOn) => Handling.Popup(isSwitchOn, _toasts.AreShown());
+    public GameToastHandling ForPopup(bool isSwitchOn) =>
+        AreToastsShown() is { } areShown ? Handling.Popup(isSwitchOn, areShown) : GameToastHandling.Leave;
 
-    public GameToastHandling ForGameToast(bool isGroupOn) => Handling.GameToast(isGroupOn, Switches.KeepGameToastLook, _toasts.AreShown());
+    public GameToastHandling ForGameToast(bool isGroupOn) =>
+        AreToastsShown() is { } areShown ? Handling.GameToast(isGroupOn, Switches.KeepGameToastLook, areShown) : GameToastHandling.Leave;
 
     /// <summary>
     /// Sends one popup or game toast where the handling says, and answers whether the game must still show its own.
@@ -79,6 +81,21 @@ internal sealed class NoticeDesk : INoticeOut
                 if (!Toasts.Activate(new ToastId(toast.ToastId))) _ledger.ForgetToast(seq);
 
                 break;
+        }
+    }
+
+    /// <summary>Null when the Toolkit could not be asked, which leaves the notice to the game.</summary>
+    private bool? AreToastsShown()
+    {
+        try
+        {
+            return _toasts.AreShown();
+        }
+        catch (Exception ex)
+        {
+            Fail("asking the Toolkit whether toasts are shown", ex);
+
+            return null;
         }
     }
 

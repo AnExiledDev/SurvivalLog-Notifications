@@ -29,6 +29,17 @@ public static class NoticeRoute
     }
 }
 
+/// <summary>The kinds of received-items popup the game draws.</summary>
+public static class ItemPopup
+{
+    /// <summary>
+    /// Whether it is a full popup that stops play: "modal", or "newDish" for a first-time dish. The game draws one sent
+    /// with no presentation as "modal". The small pickup pops ("slim", "slimPerfect") fade by themselves and come with
+    /// every harvest, so they stay the game's alone: no toast and no history row.
+    /// </summary>
+    public static bool IsFull(string? presentation) => string.IsNullOrEmpty(presentation) || presentation is "modal" or "newDish";
+}
+
 /// <summary>What clicking a history row does.</summary>
 public abstract record RowClick
 {

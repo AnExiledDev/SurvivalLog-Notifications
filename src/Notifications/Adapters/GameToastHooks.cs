@@ -1,6 +1,7 @@
 using System;
 using GameCore.HotUpdate.ReduxUI;
 using HarmonyLib;
+using Il2CppInterop.Runtime;
 using Notifications.Core;
 
 namespace Notifications.Adapters;
@@ -71,11 +72,12 @@ internal static class GameToastHooks
         return Showing(handling, isGameShowing, out __state);
     }
 
+    /// <summary>The game shows a survivor unlock only over its main screen (CoreUI1); elsewhere it shows nothing, and so does this mod.</summary>
     private static bool BeforeCharacterUnlock(int playerSelectId, out bool __state)
     {
         __state = false;
 
-        if (_desk is not { } desk) return true;
+        if (_desk is not { } desk || !IsMainScreenUp(desk)) return true;
 
         var handling = desk.ForGameToast(desk.Switches.CharacterUnlock);
         var isGameShowing = desk.IsGameShowing("survivor unlock", handling, () =>
@@ -86,6 +88,21 @@ internal static class GameToastHooks
         });
 
         return Showing(handling, isGameShowing, out __state);
+    }
+
+    /// <summary>The same check the game's OnCharacterUnlockToast makes. A check that fails counts as not up, so the game decides.</summary>
+    private static bool IsMainScreenUp(NoticeDesk desk)
+    {
+        try
+        {
+            return GameSingleton.Existing<ReduxUISystem>()?.IsUIActive(Il2CppType.Of<WebUI_CoreUI1>()) == true;
+        }
+        catch (Exception ex)
+        {
+            desk.Fail("checking the main screen for a survivor unlock", ex);
+
+            return false;
+        }
     }
 
     /// <summary>Runs whether or not the game's unlock ran, so the count always comes back down.</summary>

@@ -78,6 +78,23 @@ public class NoticeRouteTests
     }
 }
 
+public class ItemPopupTests
+{
+    [Theory]
+    [InlineData("modal")]
+    [InlineData("newDish")]
+    [InlineData(null)]
+    [InlineData("")]
+    public void TheFullPopupsThatStopPlayAreTaken(string? presentation) => Assert.True(ItemPopup.IsFull(presentation));
+
+    [Theory]
+    [InlineData("slim")]
+    [InlineData("slimPerfect")]
+    [InlineData("Modal")]
+    [InlineData("somethingNew")]
+    public void TheSmallPickupPopsAndAnythingUnknownStayTheGames(string presentation) => Assert.False(ItemPopup.IsFull(presentation));
+}
+
 public class RowClickTests
 {
     [Fact]

@@ -65,6 +65,9 @@ public static class DroneCargo
 
         return true;
     }
+
+    /// <summary>Whether a popup shows all of the cargo and nothing else, in any order.</summary>
+    public static bool IsExactly(IReadOnlyList<ItemStack> cargo, IReadOnlyList<ItemStack> shown) => Covers(cargo, shown) && Covers(shown, cargo);
 }
 
 /// <summary>
@@ -91,7 +94,9 @@ public sealed class DroneAwait
 
     /// <summary>
     /// The waiting drone a received-items popup is the unload of: the popup carries the unload line and only that
-    /// drone's cargo. That drone stops waiting and keeps the popup's data. Null when the popup is no drone's.
+    /// drone's cargo. A drone whose cargo is exactly the popup's comes first, then the one that came home first among
+    /// those that carried all of it, so drones with overlapping cargo each get their own list. That drone stops
+    /// waiting and keeps the popup's data. Null when the popup is no drone's.
     /// </summary>
     public Arrival? Claim(Reopen.Items popup, string? unloadDesc, double now)
     {
@@ -99,7 +104,8 @@ public sealed class DroneAwait
 
         if (string.IsNullOrEmpty(unloadDesc) || NoteTexts.Plain(popup.Desc) != NoteTexts.Plain(unloadDesc)) return null;
 
-        var arrival = _arrivals.Find(waiting => DroneCargo.Covers(waiting.Cargo, popup.Stacks));
+        var arrival = _arrivals.Find(waiting => DroneCargo.IsExactly(waiting.Cargo, popup.Stacks)) ??
+                      _arrivals.Find(waiting => DroneCargo.Covers(waiting.Cargo, popup.Stacks));
 
         if (arrival == null) return null;
 

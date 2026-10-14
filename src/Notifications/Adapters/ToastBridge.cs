@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using ExiledToolkit;
@@ -18,8 +17,7 @@ internal sealed class ToastBridge
 
     private readonly Ledger _ledger;
     private readonly Action<string> _log;
-    private readonly Dictionary<long, Queue<Reopen?>> _waiting = new();
-    private readonly Dictionary<long, Reopen> _lateAttach = new();
+    private readonly ToastWait _waiting = new();
     private ConfigEntry<bool>? _toastsShown;
     private bool _hasLookedForSetting;
 
@@ -36,9 +34,7 @@ internal sealed class ToastBridge
 
         if (id.IsNone) return 0;
 
-        if (!_waiting.TryGetValue(id.Value, out var popups)) _waiting[id.Value] = popups = new Queue<Reopen?>();
-
-        popups.Enqueue(reopen);
+        _waiting.Add(id.Value, reopen, DateTime.UtcNow);
 
         return id.Value;
     }
@@ -46,15 +42,14 @@ internal sealed class ToastBridge
     /// <summary>Gives a toast already raised the popup it stands for, which came after it.</summary>
     public void Attach(long toastId, Reopen reopen)
     {
-        if (_waiting.ContainsKey(toastId)) _lateAttach[toastId] = reopen;
-        else _ledger.Attach(toastId, reopen);
+        if (!_waiting.Attach(toastId, reopen)) _ledger.Attach(toastId, reopen);
     }
 
     /// <summary>Hears every toast trigger from the Toolkit.</summary>
     public void OnRaised(ToastRecord record)
     {
         var id = record.Id.Value;
-        var reopen = TakeWaiting(id);
+        var reopen = _waiting.Take(id);
         var note = new ToastNote(id, new Note(record.Source, record.Title, record.Body, KindOf(record.Kind)), record.RaisedAtUtc, record.HasClickAction, record.IsMerge);
 
         _ledger.Record(note, GameState.Stamp(), reopen);
@@ -73,21 +68,6 @@ internal sealed class ToastBridge
         }
 
         return _toastsShown?.Value ?? true;
-    }
-
-    private Reopen? TakeWaiting(long id)
-    {
-        if (!_waiting.TryGetValue(id, out var popups)) return null;
-
-        var reopen = popups.Count > 0 ? popups.Dequeue() : null;
-
-        if (popups.Count > 0) return reopen;
-
-        _waiting.Remove(id);
-
-        if (_lateAttach.Remove(id, out var late)) reopen ??= late;
-
-        return reopen;
     }
 
     private ConfigEntry<bool>? FindToastsSetting()

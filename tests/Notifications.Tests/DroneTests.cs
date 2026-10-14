@@ -88,6 +88,28 @@ public class DroneAwaitTests
     }
 
     [Fact]
+    public void ADroneWhoseCargoIsExactlyThePopupWinsOverAnOlderOneThatCarriedMore()
+    {
+        var drones = new DroneAwait();
+        var bigger = drones.Expect(Make.Cargo((1, 4), (2, 3)), 0);
+        var exact = drones.Expect(Make.Cargo((2, 3)), 0);
+
+        Assert.Same(exact, drones.Claim(Make.Items(Unload, (2, 3)), Unload, 1));
+        Assert.Same(bigger, drones.Claim(Make.Items(Unload, (2, 3), (1, 4)), Unload, 1));
+    }
+
+    [Fact]
+    public void WithNoExactMatchTheDroneThatCameHomeFirstAmongThoseThatCarriedItClaimsThePopup()
+    {
+        var drones = new DroneAwait();
+        var first = drones.Expect(Make.Cargo((1, 4), (2, 3)), 0);
+        var second = drones.Expect(Make.Cargo((2, 5)), 0);
+
+        Assert.Same(first, drones.Claim(Make.Items(Unload, (2, 2)), Unload, 1));
+        Assert.Same(second, drones.Claim(Make.Items(Unload, (2, 2)), Unload, 1));
+    }
+
+    [Fact]
     public void ADroneStopsWaitingAfterTheWaitRunsOut()
     {
         var drones = new DroneAwait();

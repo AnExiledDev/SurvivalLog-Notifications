@@ -46,8 +46,8 @@ public sealed class Plugin : BasePlugin
             "Show a toast instead of the popup when a wish comes true. Click the toast, or the entry in the phone's Notifications app, to open the popup.\n" +
             "愿望达成时显示提示，不再弹出窗口。点击提示或手机「通知」里的记录可打开原窗口。"),
         ItemsReceived: Popup("ItemsReceived",
-            "Show a toast instead of the received-items popup (bumper harvests, first-time dishes, rewards). Click it to open the popup.\n" +
-            "获得物品时显示提示，不再弹出窗口（丰收、初次烹成、奖励等）。点击提示可打开原窗口。"),
+            "Show a toast instead of the received-items popup (bumper harvests, first-time dishes, rewards). Click it to open the popup. The small pickup pops that fade by themselves stay as they are.\n" +
+            "获得物品时显示提示，不再弹出窗口（丰收、初次烹成、奖励等）。点击提示可打开原窗口。拾取物品时自动消失的小提示保持不变。"),
         WaveReport: Popup("WaveReport",
             "Show a toast instead of the zombie wave report. Click it to open the report.\n" +
             "尸潮战报改为提示显示，不再弹出窗口。点击提示可打开战报。"),
