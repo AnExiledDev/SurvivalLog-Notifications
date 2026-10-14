@@ -28,7 +28,7 @@ internal sealed class PopupCloser
 
     public void Tick()
     {
-        foreach (var step in _pending.Due(Time.frameCount, Time.unscaledTime, IsUp))
+        foreach (var step in _pending.Due(Time.frameCount, Time.unscaledTime, SightOf))
         {
             switch (step)
             {
@@ -46,6 +46,10 @@ internal sealed class PopupCloser
                     break;
                 case CloseStep.LeftVisible left:
                     _log($"{left.Line}; {Afterwards()}");
+
+                    break;
+                case CloseStep.Quiet quiet:
+                    _log($"{quiet.Line}; {Afterwards()}");
 
                     break;
                 case CloseStep.GiveUp giveUp:
@@ -71,13 +75,14 @@ internal sealed class PopupCloser
         }
     }
 
-    /// <summary>What is still up once a close has settled, to tell a stuck screen from a clean one in the log.</summary>
+    /// <summary>What is up after a close, to tell a stuck screen from a clean one in the log.</summary>
     private string Afterwards()
     {
-        var upKinds = PopupKinds.All.Where(IsUp).Select(PopupKinds.Name).ToList();
+        var upKinds = PopupKinds.All.Where(kind => SightOf(kind) == PopupSight.Full).Select(PopupKinds.Name).ToList();
         var popups = upKinds.Count == 0 ? "none" : string.Join(", ", upKinds);
 
-        return $"popups a toast stands in for still up: {popups}; a window that blocks hotkeys is up: {IsModalUp()}; open: {OpenUiNames()}";
+        return $"popups a toast stands in for still up: {popups}; received-items window: {ItemsWindow()}; " +
+            $"a window that blocks hotkeys is up: {IsModalUp()}; open: {OpenUiNames()}";
     }
 
     /// <summary>The wave report gets the close Esc sends: its OK button's action sends that close from inside a reducer.</summary>
@@ -106,20 +111,51 @@ internal sealed class PopupCloser
         }
     }
 
-    /// <summary>A popup that cannot be asked about counts as not up, so nothing is closed blind.</summary>
-    private bool IsUp(PopupKind kind)
+    /// <summary>
+    /// A window that cannot be asked about counts as down, so nothing is closed blind. The received-items window is the
+    /// full popup only while it shows a presentation a toast stands in for: the small pickup pops are the game's, and a
+    /// presentation that cannot be read counts as one of them.
+    /// </summary>
+    private PopupSight SightOf(PopupKind kind)
     {
         try
         {
-            return GameSingleton.Existing<ReduxUISystem>()?.IsUIActive(WebUiOf(kind)) == true;
+            if (GameSingleton.Existing<ReduxUISystem>() is not { } ui || !ui.IsUIActive(WebUiOf(kind))) return PopupSight.Down;
+
+            if (kind != PopupKind.Items) return PopupSight.Full;
+
+            return ItemsPresentation(ui) is { } presentation && ItemPopup.IsFull(presentation) ? PopupSight.Full : PopupSight.Other;
         }
         catch (Exception ex)
         {
             Fail("asking whether the " + PopupKinds.Name(kind) + " is up", ex);
 
-            return false;
+            return PopupSight.Down;
         }
     }
+
+    /// <summary>What the received-items window shows: "closed", the game's presentation name, or "unreadable".</summary>
+    private string ItemsWindow()
+    {
+        try
+        {
+            if (GameSingleton.Existing<ReduxUISystem>() is not { } ui) return "unknown";
+
+            if (!ui.IsUIActive(WebUiOf(PopupKind.Items))) return "closed";
+
+            return ItemsPresentation(ui) ?? "unreadable";
+        }
+        catch (Exception ex)
+        {
+            Fail("reading the received-items window", ex);
+
+            return "unreadable";
+        }
+    }
+
+    /// <summary>The game stores "modal" for an open sent with no presentation, so an open window always names one.</summary>
+    private static string? ItemsPresentation(ReduxUISystem ui) =>
+        ui.GetStateByUI(WebUiOf(PopupKind.Items))?.TryCast<State_Web_RewardList>()?.Presentation?.Value;
 
     /// <summary>The game's own test for a window that keeps hotkeys from working: any open window Esc can close.</summary>
     private string IsModalUp()
@@ -146,10 +182,12 @@ internal sealed class PopupCloser
     {
         try
         {
+            if (GameSingleton.Existing<ReduxUISystem>() is not { } ui) return "unknown";
+
             var names = new Il2CppSystem.Collections.Generic.List<string>();
             var listed = new List<string>();
 
-            GameSingleton.Existing<ReduxUISystem>()?.GetOpenUITypeNames(names);
+            ui.GetOpenUITypeNames(names);
 
             for (var i = 0; i < names.Count; i++) listed.Add(names[i]);
 

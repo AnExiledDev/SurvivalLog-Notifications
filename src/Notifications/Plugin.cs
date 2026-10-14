@@ -13,7 +13,7 @@ namespace Notifications;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.1.1";
+    private const string Version = "0.1.2";
 
     public override void Load()
     {
