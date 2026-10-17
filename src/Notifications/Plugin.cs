@@ -13,7 +13,7 @@ namespace Notifications;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.1.2";
+    private const string Version = "0.1.3";
 
     public override void Load()
     {
@@ -61,7 +61,7 @@ public sealed class Plugin : BasePlugin
             "无人机返回时显示「无人机送货到了」提示，不再弹出卸货窗口。点击提示可打开原窗口。放不下的货物仍留在无人机里，此时没有窗口可打开。"),
         PopText: GameToast("PopText",
             "Show the game's short messages (such as not enough stamina) as toasts. Identical messages in a row merge into one toast with a count. All of them go into the phone's Notifications app.\n" +
-            "把游戏的简短提示（例如体力不足）改为本模组的提示显示。连续出现的相同提示会合并为一条并显示次数。所有提示都会记入手机「通知」。"),
+            "把游戏的简短提示（例如精力不足）改为本模组的提示显示。连续出现的相同提示会合并为一条并显示次数。所有提示都会记入手机「通知」。"),
         SystemUnlock: GameToast("SystemUnlock",
             "Show system unlocks as toasts, and keep them in the phone's Notifications app.\n" +
             "系统解锁改为提示显示，并记入手机「通知」。"),

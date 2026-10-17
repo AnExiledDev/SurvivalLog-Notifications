@@ -1,0 +1,111 @@
+Name: Notifications
+Summary: Turns the game's interrupting popups into toasts, and keeps every notice in a Notifications app on your phone. Needs Exiled's Toolkit. 把游戏打断操作的弹窗改为提示，并把每条通知保存在手机的「通知」应用里。需要 Exiled's Toolkit。
+
+Description (BBCode):
+Survival Log stops play with a popup for many things that only need a glance: a wish coming true, items received, a zombie wave report, a skill level-up, a drone unloading. Its short messages (such as not enough stamina) flash by and are easy to miss. Notifications shows all of these as toasts instead, and keeps a full list of them on the phone, so nothing is lost if you looked away.
+
+[size=5]Main features[/size]
+[list]
+[*][b]Popups become toasts[/b]: wishes fulfilled, items received, zombie wave reports, skill level-ups and drone deliveries show a toast instead of stopping play. Each can be switched back to the popup on its own.[/*]
+[*][b]Click to open[/b]: clicking the toast opens the original popup, with the same contents.[/*]
+[*][b]The game's short messages too[/b]: short messages, system unlocks and new survivor unlocks show as toasts that stay on screen longer. They can also be left to the game while still being kept on the phone.[/*]
+[*][b]Repeats merge[/b]: the same message several times in a row shows one toast with a count (x2, x3, ...).[/*]
+[*][b]Phone app[/b]: a Notifications app on the phone lists every notice of the current save, newest first, with the game day and hour. A dot on the icon shows when there is something new.[/*]
+[*][b]Reopen from the list[/b]: clicking a notice in the list opens its popup again, when it had one.[/*]
+[*][b]Kept per save[/b]: up to the newest 500 notices, back when you load that save again.[/*]
+[/list]
+Popups that ask you to choose something, such as events and the item pickup window with Pick All, are never changed.
+
+Notifications adds nothing to your save and does not edit game files. The list is kept in its own files next to the mod's settings. You can remove it at any time.
+
+Works in English and Chinese.
+
+[size=5]Known issues[/size]
+[list]
+[*]Back up your save before trying it for the first time.[/*]
+[*]After a restart, a notice in the list can open its popup again only if the popup can be rebuilt from what was saved.[/*]
+[*]When some of a drone's cargo does not fit, it stays in the drone as before, and the toast has no popup to open.[/*]
+[*]The list starts empty for saves played before the mod was installed.[/*]
+[/list]
+If you run into anything strange, please tell me (see Feedback below).
+
+[size=5]Requirements[/size]
+[list]
+[*]Survival Log 1.1.18902. A game update can break it until the mod is updated.[/*]
+[*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]. Install it first.[/*]
+[*]Exiled's Toolkit, which draws the toasts. Notifications does not load without it.[/*]
+[/list]
+
+[size=5]Installation[/size]
+[list=1]
+[*]Install [url=https://www.nexusmods.com/survivallog/mods/12]BepInEx[/url] [i](if no other mods were installed before, start the game once so BepInEx finishes setup, then quit)[/i].[/*]
+[*]Put [font=Courier New]Notifications.dll[/font] in the BepInEx&#92;plugins folder inside the game folder, next to ExiledToolkit.dll. Full path example:
+[code]C:&#92;Program Files (x86)&#92;Steam&#92;steamapps&#92;common&#92;Survival Log&#92;BepInEx&#92;plugins&#92;Notifications.dll[/code][/*]
+[/list]
+
+[size=5]Uninstall[/size]
+Delete [font=Courier New]Notifications.dll[/font] from the [font=Courier New]BepInEx&#92;plugins[/font] folder.
+
+[size=5]Configuration[/size]
+To choose which popups and messages become toasts, edit [font=Courier New]BepInEx&#92;config&#92;com.dev.survivallog.notifications.cfg[/font] while the game is closed (see [url=https://github.com/AnExiledDev/SurvivalLog-Notifications/blob/main/CONFIG.md]CONFIG.md[/url]; the cfg file explains each setting in English and Chinese). Changes apply at the next game start. Where the toasts appear and how long they stay are Exiled's Toolkit settings.
+
+[size=5]Feedback[/size]
+Found a bug or have an idea? Come say hi on the [url=https://discord.gg/trTsyxUFqg]Core Directive Discord[/url], or leave a comment here. For bugs, please include [font=Courier New]BepInEx&#92;LogOutput.log[/font] and [font=Courier New]BepInEx&#92;notifications.log[/font].
+
+[size=5]Source and license[/size]
+Open source under MIT: [url=https://github.com/AnExiledDev/SurvivalLog-Notifications]github.com/AnExiledDev/SurvivalLog-Notifications[/url]
+
+[line]
+[size=5]简体中文[/size]
+
+Survival Log 会为许多只需看一眼的事情弹出窗口、打断游戏：愿望满足、获得物品、尸潮战报、熟练度提升、无人机卸货。它的简短提示（例如精力不足）一闪而过，很容易错过。Notifications 把这些都改为提示显示，并在手机上保存完整的列表，即使你没看到也不会丢失。
+
+[size=5]主要功能[/size]
+[list]
+[*][b]弹窗变成提示[/b]：愿望满足、获得物品、尸潮战报、熟练度提升和无人机送货都显示为提示，不再打断游戏。每一项都可以单独改回弹窗。[/*]
+[*][b]点击打开[/b]：点击提示会打开原来的弹窗，内容不变。[/*]
+[*][b]游戏的简短提示也一样[/b]：简短提示、系统解锁和新幸存者解锁显示为停留更久的提示。也可以仍由游戏自己显示，同时记入手机。[/*]
+[*][b]重复合并[/b]：连续出现的相同提示只显示一条，并带有次数（x2、x3 等）。[/*]
+[*][b]手机应用[/b]：手机上的「通知」应用列出当前存档的每条通知，最新的在前，并显示游戏中的日期和时刻。有新通知时，图标上会出现小圆点。[/*]
+[*][b]从列表重新打开[/b]：点击列表中的通知，可以再次打开它的弹窗（如果有）。[/*]
+[*][b]按存档保存[/b]：最多保留最新的 500 条通知，再次读取该存档时会回来。[/*]
+[/list]
+需要你做选择的弹窗，例如事件和带有全部拾取按钮的拾取窗口，永远不会被改动。
+
+Notifications 不会往存档里写入任何内容，也不会修改游戏文件。列表保存在模组设置旁边它自己的文件里。你可以随时移除它。
+
+支持英文和中文。
+
+[size=5]已知问题[/size]
+[list]
+[*]第一次使用前请备份存档。[/*]
+[*]重启游戏后，只有能根据保存的内容重建的弹窗，才能从列表中再次打开。[/*]
+[*]无人机的部分货物放不下时，会像以前一样留在无人机里，此时提示没有可打开的弹窗。[/*]
+[*]安装模组之前玩过的存档，列表从空开始。[/*]
+[/list]
+如果遇到任何奇怪的情况，请告诉我（见下方反馈）。
+
+[size=5]前置要求[/size]
+[list]
+[*]Survival Log 1.1.18902。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
+[*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]，请先安装。[/*]
+[/list]
+
+[size=5]安装[/size]
+[list=1]
+[*]安装 [url=https://www.nexusmods.com/survivallog/mods/12]BepInEx[/url] [i]（如果之前没有装过其他模组，先启动一次游戏，让 BepInEx 完成初始化，然后退出）[/i]。[/*]
+[*]把 [font=Courier New]Notifications.dll[/font] 放进游戏目录下的 BepInEx&#92;plugins 文件夹。完整路径示例：
+[code]C:&#92;Program Files (x86)&#92;Steam&#92;steamapps&#92;common&#92;Survival Log&#92;BepInEx&#92;plugins&#92;Notifications.dll[/code][/*]
+[/list]
+
+[size=5]卸载[/size]
+从 [font=Courier New]BepInEx&#92;plugins[/font] 文件夹中删除 [font=Courier New]Notifications.dll[/font]。
+
+[size=5]配置[/size]
+如需选择哪些弹窗和提示改为通知，请在游戏关闭时编辑 [font=Courier New]BepInEx&#92;config&#92;com.dev.survivallog.notifications.cfg[/font]。配置文件中每项设置都有中文说明，完整说明见 [url=https://github.com/AnExiledDev/SurvivalLog-Notifications/blob/main/CONFIG.md]CONFIG.md[/url]（英文）。修改会在下次启动游戏时生效。
+
+[size=5]反馈[/size]
+发现 bug 或有好点子？欢迎来 [url=https://discord.gg/trTsyxUFqg]Core Directive Discord[/url] 打个招呼，或在这里留言。报告 bug 时，请附上 [font=Courier New]BepInEx&#92;LogOutput.log[/font] 和 [font=Courier New]BepInEx&#92;notifications.log[/font]。
+
+[size=5]源代码与许可[/size]
+基于 MIT 许可开源：[url=https://github.com/AnExiledDev/SurvivalLog-Notifications]github.com/AnExiledDev/SurvivalLog-Notifications[/url]

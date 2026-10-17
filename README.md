@@ -20,7 +20,7 @@ Notifications adds nothing to your save and does not edit game files. The list i
 
 ## Requirements
 
-- Survival Log 1.1.18317. Built and tested on this version; a game update can break it until the mod is updated.
+- Survival Log 1.1.18902. Built and tested on this version; a game update can break it until the mod is updated.
 - The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
 - **Exiled's Toolkit**, which draws the toasts. Notifications does not load without it.
 
@@ -37,7 +37,9 @@ Delete `Notifications.dll` from the `BepInEx\plugins` folder. For a clean slate,
 
 ## Configuration
 
-Settings live in `BepInEx\config\com.dev.survivallog.notifications.cfg`, created the first time the game starts with the mod. Edit it while the game is closed; changes apply at the next game start. See [CONFIG.md](CONFIG.md) for every setting.
+Settings live in `BepInEx\config\com.dev.survivallog.notifications.cfg`, created the first time the game starts with the mod. Edit it while the game is closed; changes apply at the next game start. Each setting in the cfg file is explained in English and Simplified Chinese. See [CONFIG.md](CONFIG.md) for every setting.
+
+The phone app and the mod's own toast text follow the game's language: English or Simplified Chinese.
 
 How long toasts stay on screen, which corner they use, and whether they are drawn at all are Exiled's Toolkit settings. With the Toolkit's toasts turned off, every popup shows as the game draws it and the phone list still keeps a copy of everything.
 
@@ -49,6 +51,6 @@ How long toasts stay on screen, which corner they use, and whether they are draw
 
 ## Troubleshooting
 
-Check `BepInEx\LogOutput.log` for `===== Notifications 0.1.2 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
+Check `BepInEx\LogOutput.log` for `===== Notifications 0.1.3 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
 
 If a saved list cannot be read, it is moved aside with a `.bad` ending in `BepInEx\config\notifications` and a new list starts, so the old one is never written over.
