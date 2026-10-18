@@ -22,12 +22,10 @@ Works in English and Chinese.
 
 [size=5]Known issues[/size]
 [list]
-[*]Back up your save before trying it for the first time.[/*]
 [*]After a restart, a notice in the list can open its popup again only if the popup can be rebuilt from what was saved.[/*]
 [*]When some of a drone's cargo does not fit, it stays in the drone as before, and the toast has no popup to open.[/*]
 [*]The list starts empty for saves played before the mod was installed.[/*]
 [/list]
-If you run into anything strange, please tell me (see Feedback below).
 
 [size=5]Requirements[/size]
 [list]
@@ -79,12 +77,10 @@ Notifications 不会往存档里写入任何内容，也不会修改游戏文件
 
 [size=5]已知问题[/size]
 [list]
-[*]第一次使用前请备份存档。[/*]
 [*]重启游戏后，只有能根据保存的内容重建的弹窗，才能从列表中再次打开。[/*]
 [*]无人机的部分货物放不下时，会像以前一样留在无人机里，此时提示没有可打开的弹窗。[/*]
 [*]安装模组之前玩过的存档，列表从空开始。[/*]
 [/list]
-如果遇到任何奇怪的情况，请告诉我（见下方反馈）。
 
 [size=5]前置要求[/size]
 [list]
