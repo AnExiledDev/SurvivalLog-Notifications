@@ -20,15 +20,19 @@ internal static class DroneHooks
     private static readonly DroneAwait Await = new();
     private static NoticeDesk? _desk;
     private static DroneAwait.Arrival? _settling;
+    private static SwitchedHook? _settle;
 
     public static void Apply(Harmony harmony, NoticeDesk desk, Action<string> log)
     {
         _desk = desk;
 
         // 0x2fc2310; the settle that hands the cargo over. The load-time restore is left alone.
-        HookPatch.Apply(harmony, AccessTools.Method(typeof(StrangerTradeActiveManager), nameof(StrangerTradeActiveManager.SettleDroneReturn)), typeof(DroneHooks),
-            nameof(BeforeSettle), nameof(AfterSettle), "drone deliveries become toasts", "their unload popups stay popups", log);
+        _settle = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(StrangerTradeActiveManager), nameof(StrangerTradeActiveManager.SettleDroneReturn)),
+            typeof(DroneHooks), nameof(BeforeSettle), nameof(AfterSettle), "drone deliveries become toasts", "their unload popups stay popups", log));
     }
+
+    /// <summary>Called on the main thread at start and after each change of a switch.</summary>
+    public static void Use(Switches switches) => _settle?.Use(switches.DroneDelivery);
 
     /// <summary>
     /// Whether a received-items popup is a waiting drone's unload, which the drone's toast then stands for, so the popup

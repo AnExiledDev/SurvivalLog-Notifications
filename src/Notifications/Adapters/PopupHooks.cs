@@ -19,42 +19,40 @@ namespace Notifications.Adapters;
 internal static class PopupHooks
 {
     private static NoticeDesk? _desk;
+    private static SwitchedHook? _wish;
+    private static SwitchedHook? _items;
+    private static SwitchedHook? _wave;
+    private static SwitchedHook? _skill;
 
     public static void Apply(Harmony harmony, NoticeDesk desk, Action<string> log)
     {
         _desk = desk;
 
-        var switches = desk.Switches;
+        // 0x280c850; the game's own OnWishCompleted (0x2825300) jumps within its first 14 bytes and cannot be hooked.
+        _wish = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(Ac_WishFinished_WebOpen), nameof(Ac_WishFinished_WebOpen.SendAction)), typeof(PopupHooks),
+            nameof(BeforeWish), null, "wish popups become toasts", "they stay popups", log));
 
-        if (switches.WishFulfilled)
-        {
-            // 0x280c850; the game's own OnWishCompleted (0x2825300) jumps within its first 14 bytes and cannot be hooked.
-            HookPatch.Apply(harmony, AccessTools.Method(typeof(Ac_WishFinished_WebOpen), nameof(Ac_WishFinished_WebOpen.SendAction)), typeof(PopupHooks), nameof(BeforeWish), null,
-                "wish popups become toasts", "they stay popups", log);
-        }
+        // 0x27f7750, the overload the others call; OnOpenAddItemPop (0x281f2e0) and its bumper twin jump too early.
+        _items = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(Ac_RewardList_OpenAddItem), nameof(Ac_RewardList_OpenAddItem.SendAction),
+                new[] { typeof(GameItemList), typeof(GameIntList), typeof(int), typeof(int), typeof(string), typeof(string) }), typeof(PopupHooks),
+            nameof(BeforeItems), null, "received-items popups become toasts", "they stay popups", log));
 
-        if (switches.ItemsReceived || switches.DroneDelivery)
-        {
-            // 0x27f7750, the overload the others call; OnOpenAddItemPop (0x281f2e0) and its bumper twin jump too early.
-            var addItem = AccessTools.Method(typeof(Ac_RewardList_OpenAddItem), nameof(Ac_RewardList_OpenAddItem.SendAction),
-                new[] { typeof(GameItemList), typeof(GameIntList), typeof(int), typeof(int), typeof(string), typeof(string) });
+        // 0x2823e60
+        _wave = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(LogicAdapter), nameof(LogicAdapter.OnTowerWaveReportReady)), typeof(PopupHooks),
+            nameof(BeforeWave), null, "zombie wave reports become toasts", "they stay popups", log));
 
-            HookPatch.Apply(harmony, addItem, typeof(PopupHooks), nameof(BeforeItems), null, "received-items popups become toasts", "they stay popups", log);
-        }
+        // 0x2822280
+        _skill = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(LogicAdapter), nameof(LogicAdapter.OnSkillLevelUpPopupOpen)), typeof(PopupHooks),
+            nameof(BeforeSkill), null, "skill level-up popups become toasts", "they stay popups", log));
+    }
 
-        if (switches.WaveReport)
-        {
-            // 0x2823e60
-            HookPatch.Apply(harmony, AccessTools.Method(typeof(LogicAdapter), nameof(LogicAdapter.OnTowerWaveReportReady)), typeof(PopupHooks), nameof(BeforeWave), null,
-                "zombie wave reports become toasts", "they stay popups", log);
-        }
-
-        if (switches.SkillLevelUp)
-        {
-            // 0x2822280
-            HookPatch.Apply(harmony, AccessTools.Method(typeof(LogicAdapter), nameof(LogicAdapter.OnSkillLevelUpPopupOpen)), typeof(PopupHooks), nameof(BeforeSkill), null,
-                "skill level-up popups become toasts", "they stay popups", log);
-        }
+    /// <summary>Called on the main thread at start and after each change of a switch.</summary>
+    public static void Use(Switches switches)
+    {
+        _wish?.Use(switches.WishFulfilled);
+        _items?.Use(switches.ItemsReceived || switches.DroneDelivery);
+        _wave?.Use(switches.WaveReport);
+        _skill?.Use(switches.SkillLevelUp);
     }
 
     private static void BeforeWish(int ItemConfigId, int FaithValue, int SurvivalValue, int BuffId, int WishPoolId)

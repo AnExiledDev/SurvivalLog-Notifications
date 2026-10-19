@@ -1,6 +1,6 @@
 # Notifications settings
 
-Settings live in `BepInEx\config\com.dev.survivallog.notifications.cfg`, created the first time the game starts with the mod. Edit the file while the game is closed; changes apply at the next game start. Delete the file to get the defaults back.
+Settings live in `BepInEx\config\com.dev.survivallog.notifications.cfg`, created the first time the game starts with the mod. Change them in game on the Mod Manager's Mods screen, where they take effect at once, or edit the file while the game is closed. Delete the file to get the defaults back.
 
 How long toasts stay on screen and where they appear are set in Exiled's Toolkit (`Seconds`, 7 by default). When the Toolkit's `Enabled` is `false`, no toasts are drawn: every popup and message shows as the game draws it, and the phone's Notifications app still keeps a copy.
 

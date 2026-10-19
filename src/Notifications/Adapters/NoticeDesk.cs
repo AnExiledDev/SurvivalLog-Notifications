@@ -27,7 +27,10 @@ internal sealed class NoticeDesk : INoticeOut
         _log = log;
     }
 
-    public Switches Switches { get; }
+    public Switches Switches { get; private set; }
+
+    /// <summary>Called on the main thread after each change of a switch; the next notice follows it.</summary>
+    public void UseSwitches(Switches switches) => Switches = switches;
 
     public GameToastHandling ForPopup(bool isSwitchOn) =>
         AreToastsShown() is { } areShown ? Handling.Popup(isSwitchOn, areShown) : GameToastHandling.Leave;
