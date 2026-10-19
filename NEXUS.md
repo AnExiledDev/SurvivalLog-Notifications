@@ -86,6 +86,7 @@ Notifications 不会往存档里写入任何内容，也不会修改游戏文件
 [list]
 [*]Survival Log 1.1.18902。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]，请先安装。[/*]
+[*]Exiled's Toolkit，用于显示通知。没有它，Notifications 无法加载。[/*]
 [/list]
 
 [size=5]安装[/size]
