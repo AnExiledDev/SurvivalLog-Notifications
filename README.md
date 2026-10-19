@@ -55,3 +55,9 @@ How long toasts stay on screen, which corner they use, and whether they are draw
 Check `BepInEx\LogOutput.log` for `===== Notifications 0.2.0 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
 
 If a saved list cannot be read, it is moved aside with a `.bad` ending in `BepInEx\config\notifications` and a new list starts, so the old one is never written over.
+
+## Contact
+
+To reach me directly, message `exiled.dev` on Discord; you can find me in the [official Survival Log Discord](https://discord.gg/MZGg4gQAUe). I'm also on X as [@AnExiledDev](https://x.com/AnExiledDev).
+
+A Survival Log wiki with detailed documentation for all of my mods is coming soon.
