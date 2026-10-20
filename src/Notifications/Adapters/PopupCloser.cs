@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GameCore.HotUpdate;
 using GameCore.HotUpdate.ReduxUI;
 using Il2CppInterop.Runtime;
 using Notifications.Core;
@@ -85,7 +86,10 @@ internal sealed class PopupCloser
             $"a window that blocks hotkeys is up: {IsModalUp()}; open: {OpenUiNames()}";
     }
 
-    /// <summary>The wave report gets the close Esc sends: its OK button's action sends that close from inside a reducer.</summary>
+    /// <summary>
+    /// The wave report does what its OK button does: opening it paused the battle, so the battle is resumed, then the
+    /// report closed. The close alone left the game paused with no report showing.
+    /// </summary>
     private static void SendClose(PopupKind kind)
     {
         switch (kind)
@@ -99,6 +103,7 @@ internal sealed class PopupCloser
 
                 break;
             case PopupKind.Wave:
+                EventDispatcherTools.NotifyGlobal(EnumNotify_Lifecycle.ResumeBattleLogic); // as Reducer_Web_TowerWaveReport.RA_Confirm
                 Ac_TowerWaveReport_WebClose.SendAction(); // 0x2807100
 
                 break;
