@@ -2,11 +2,11 @@
 
 Turns the game's interrupting popups into toasts, and keeps every notice in a Notifications app on your phone.
 
-Survival Log stops play with a popup for many things that only need a glance: a wish coming true, items received, a zombie wave report, a skill level-up, a drone unloading. Its short messages (such as not enough stamina) flash by at the bottom of the screen and are easy to miss. Notifications shows all of these as toasts in a corner of the screen instead, and keeps a full list of them on the phone, so nothing is lost if you looked away.
+Survival Log stops play with a popup for many things that only need a glance: a wish coming true, items received, a skill level-up, a drone unloading. Its short messages (such as not enough stamina) flash by at the bottom of the screen and are easy to miss. Notifications shows all of these as toasts in a corner of the screen instead, and keeps a full list of them on the phone, so nothing is lost if you looked away.
 
 ## Features
 
-- **Popups become toasts**: wishes fulfilled, items received, zombie wave reports, skill level-ups and drone deliveries show a toast instead of stopping play. Each can be switched back to the popup on its own.
+- **Popups become toasts**: wishes fulfilled, items received, skill level-ups and drone deliveries show a toast instead of stopping play. Each can be switched back to the popup on its own. The zombie wave report stays the game's own popup unless you turn on `WaveReport`.
 - **Click to open**: clicking the toast opens the original popup, with the same contents it would have shown.
 - **The game's short messages too**: the game's own short messages, system unlocks and new survivor unlocks show as toasts, which are bigger and stay on screen longer than the game's. They can also be left to the game while still being kept on the phone.
 - **Repeats merge**: the same message sent several times in a row shows one toast with a count (x2, x3, ...) instead of a stack of copies. Only messages that are exactly the same merge.
@@ -52,7 +52,7 @@ How long toasts stay on screen, which corner they use, and whether they are draw
 
 ## Troubleshooting
 
-Check `BepInEx\LogOutput.log` for `===== Notifications 0.2.0 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
+Check `BepInEx\LogOutput.log` for `===== Notifications 0.2.1 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
 
 If a saved list cannot be read, it is moved aside with a `.bad` ending in `BepInEx\config\notifications` and a new list starts, so the old one is never written over.
 

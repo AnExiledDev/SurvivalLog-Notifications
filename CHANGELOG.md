@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- The zombie wave report shows as the game's own popup by default. As a toast it could leave the game paused as if the report were open, needing Escape twice. `WaveReport` turns the toast back on.
+
 ## 0.2.0
 
 - The Mods screen links this changelog.

@@ -2,11 +2,11 @@ Name: Notifications
 Summary: Turns the game's interrupting popups into toasts, and keeps every notice in a Notifications app on your phone. Needs Exiled's Toolkit. 把游戏打断操作的弹窗改为提示，并把每条通知保存在手机的「通知」应用里。需要 Exiled's Toolkit。
 
 Description (BBCode):
-Survival Log stops play with a popup for many things that only need a glance: a wish coming true, items received, a zombie wave report, a skill level-up, a drone unloading. Its short messages (such as not enough stamina) flash by and are easy to miss. Notifications shows all of these as toasts instead, and keeps a full list of them on the phone, so nothing is lost if you looked away.
+Survival Log stops play with a popup for many things that only need a glance: a wish coming true, items received, a skill level-up, a drone unloading. Its short messages (such as not enough stamina) flash by and are easy to miss. Notifications shows all of these as toasts instead, and keeps a full list of them on the phone, so nothing is lost if you looked away.
 
 [size=5]Main features[/size]
 [list]
-[*][b]Popups become toasts[/b]: wishes fulfilled, items received, zombie wave reports, skill level-ups and drone deliveries show a toast instead of stopping play. Each can be switched back to the popup on its own.[/*]
+[*][b]Popups become toasts[/b]: wishes fulfilled, items received, skill level-ups and drone deliveries show a toast instead of stopping play. Each can be switched back to the popup on its own. The zombie wave report stays the game's own popup unless you turn on WaveReport.[/*]
 [*][b]Click to open[/b]: clicking the toast opens the original popup, with the same contents.[/*]
 [*][b]The game's short messages too[/b]: short messages, system unlocks and new survivor unlocks show as toasts that stay on screen longer. They can also be left to the game while still being kept on the phone.[/*]
 [*][b]Repeats merge[/b]: the same message several times in a row shows one toast with a count (x2, x3, ...).[/*]
@@ -59,11 +59,11 @@ Open source under MIT: [url=https://github.com/AnExiledDev/SurvivalLog-Notificat
 [line]
 [size=5]简体中文[/size]
 
-Survival Log 会为许多只需看一眼的事情弹出窗口、打断游戏：愿望满足、获得物品、尸潮战报、熟练度提升、无人机卸货。它的简短提示（例如精力不足）一闪而过，很容易错过。Notifications 把这些都改为提示显示，并在手机上保存完整的列表，即使你没看到也不会丢失。
+Survival Log 会为许多只需看一眼的事情弹出窗口、打断游戏：愿望满足、获得物品、熟练度提升、无人机卸货。它的简短提示（例如精力不足）一闪而过，很容易错过。Notifications 把这些都改为提示显示，并在手机上保存完整的列表，即使你没看到也不会丢失。
 
 [size=5]主要功能[/size]
 [list]
-[*][b]弹窗变成提示[/b]：愿望满足、获得物品、尸潮战报、熟练度提升和无人机送货都显示为提示，不再打断游戏。每一项都可以单独改回弹窗。[/*]
+[*][b]弹窗变成提示[/b]：愿望满足、获得物品、熟练度提升和无人机送货都显示为提示，不再打断游戏。每一项都可以单独改回弹窗。尸潮战报默认仍是游戏自带的弹窗，开启 WaveReport 后才改为提示。[/*]
 [*][b]点击打开[/b]：点击提示会打开原来的弹窗，内容不变。[/*]
 [*][b]游戏的简短提示也一样[/b]：简短提示、系统解锁和新幸存者解锁显示为停留更久的提示。也可以仍由游戏自己显示，同时记入手机。[/*]
 [*][b]重复合并[/b]：连续出现的相同提示只显示一条，并带有次数（x2、x3 等）。[/*]
