@@ -1,5 +1,5 @@
 Name: Notifications
-Summary: Turns the game's interrupting popups into toasts, and keeps every notice in a Notifications app on your phone. Needs Exiled's Toolkit. 把游戏打断操作的弹窗改为提示，并把每条通知保存在手机的「通知」应用里。需要 Exiled's Toolkit。
+Summary: Stop the game interrupting you for things that only need a glance. Wishes coming true, items received, skill level-ups and drone deliveries show as toasts instead of popups, and every notice is kept in a Notifications app on your phone with the day and hour. Click a toast to open the original popup. Needs Exiled's Toolkit.
 
 Description (BBCode):
 Survival Log stops play with a popup for many things that only need a glance: a wish coming true, items received, a skill level-up, a drone unloading. Its short messages (such as not enough stamina) flash by and are easy to miss. Notifications shows all of these as toasts instead, and keeps a full list of them on the phone, so nothing is lost if you looked away.
@@ -29,7 +29,7 @@ Works in English and Chinese.
 
 [size=5]Requirements[/size]
 [list]
-[*]Survival Log 1.1.18902. A game update can break it until the mod is updated.[/*]
+[*]Survival Log 1.1.19131. A game update can break it until the mod is updated.[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]. Install it first.[/*]
 [*]Exiled's Toolkit 0.4.0 or newer, which draws the toasts and applies changed settings at once. Notifications does not load without it.[/*]
 [/list]
@@ -86,7 +86,7 @@ Notifications 不会往存档里写入任何内容，也不会修改游戏文件
 
 [size=5]前置要求[/size]
 [list]
-[*]Survival Log 1.1.18902。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
+[*]Survival Log 1.1.19131。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]，请先安装。[/*]
 [*]Exiled's Toolkit 0.4.0 或更新版本，用于显示通知，并让改动的设置立即生效。没有它，Notifications 无法加载。[/*]
 [/list]
