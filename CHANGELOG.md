@@ -4,6 +4,8 @@
 
 - With `WaveReport` on, the game no longer stays paused when the wave report becomes a toast, and no Escape is needed to carry on.
 
+- After a game update, a hook that can no longer be placed is logged as an error, so the Mod Manager can mark the mod as maybe needing an update.
+
 ## 0.2.1
 
 - The zombie wave report shows as the game's own popup by default. As a toast it could leave the game paused as if the report were open, needing Escape twice. `WaveReport` turns the toast back on.
