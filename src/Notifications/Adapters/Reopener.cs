@@ -59,7 +59,11 @@ internal static class Reopener
 
                 return null;
             case Reopen.Items items:
-                Ac_RewardList_OpenAddItem.SendAction(GameItems(items.Stacks), GameKinds(items.Kinds), items.BumperCount, items.SuperCount, items.Presentation, items.Desc);
+                var gameItems = GameItems(items.Stacks);
+
+                if (Mismatch(gameItems, items.Stacks) is { } mismatch) return mismatch;
+
+                Ac_RewardList_OpenAddItem.SendAction(gameItems, GameKinds(items.Kinds), items.BumperCount, items.SuperCount, items.Presentation, items.Desc);
 
                 return null;
             case Reopen.Wave wave:
@@ -85,9 +89,38 @@ internal static class Reopener
     {
         var list = new GameItemList();
 
-        foreach (var stack in stacks) list.Add(new GameItemPair(stack.ConfigId, stack.Count));
+        foreach (var stack in stacks) list.Add(Pair(stack));
 
         return list;
+    }
+
+    /// <summary>
+    /// The pair's fields are also written straight into the game's memory: with the constructor alone, a reopened
+    /// received-items popup came up with its title but no items, which is what the popup does when it cannot find an id.
+    /// </summary>
+    private static GameItemPair Pair(ItemStack stack)
+    {
+        var pair = new GameItemPair(stack.ConfigId, stack.Count);
+        pair.key = stack.ConfigId;
+        pair.value = stack.Count;
+
+        return pair;
+    }
+
+    /// <summary>The list as the game will read it, checked against the history, so an empty popup is never opened.</summary>
+    private static string? Mismatch(GameItemList list, IReadOnlyList<ItemStack> stacks)
+    {
+        if (list.Count != stacks.Count) return $"the item list holds {list.Count} of {stacks.Count} items";
+
+        for (var i = 0; i < stacks.Count; i++)
+        {
+            var pair = list[i];
+
+            if (pair.key != stacks[i].ConfigId || pair.value != stacks[i].Count)
+                return $"item {i + 1} reads as {pair.key} x{pair.value}, not {stacks[i].ConfigId} x{stacks[i].Count}";
+        }
+
+        return null;
     }
 
     private static GameIntList? GameKinds(IReadOnlyList<int>? kinds)

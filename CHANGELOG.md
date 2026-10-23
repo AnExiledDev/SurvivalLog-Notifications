@@ -7,6 +7,7 @@
 - Each notice stays new until you open it. Mark all read clears them all at once, and Clear list (with a check first) empties the list for this save.
 - The phone's home screen shows up to three new notices, with See all to open the list.
 - The app icon is orange and shows how many notices are new.
+- Opening a received-items popup again from the list shows its items. Before, it came up empty.
 - Toasts use the new Exiled's Toolkit look, with item pictures and a bar for the time left.
 - Needs Exiled's Toolkit 0.7.0 or newer.
 - Made for Survival Log 1.1.19131.
