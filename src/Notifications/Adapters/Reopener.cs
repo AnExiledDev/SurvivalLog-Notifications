@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using GameCore.HotUpdate;
 using GameCore.HotUpdate.ReduxUI;
+using Il2CppInterop.Runtime;
 using Notifications.Core;
 using GameItemList = Il2CppSystem.Collections.Generic.List<Il2CppSystem.Collections.Generic.KeyValuePair<int, int>>;
 using GameItemPair = Il2CppSystem.Collections.Generic.KeyValuePair<int, int>;
@@ -85,42 +87,73 @@ internal static class Reopener
 
     private static LogicAdapter? LogicAdapter() => GameSingleton.Existing<ReduxUISystem>()?._logicAdapter;
 
+    /// <summary>
+    /// The list is written straight into the game's memory: its array of id and amount pairs, then its size. Built
+    /// through the interop wrappers (the pair's constructor, then Add), the game read every pair as garbage, so the
+    /// popup came up with its title and no items.
+    /// </summary>
     private static GameItemList GameItems(IReadOnlyList<ItemStack> stacks)
     {
         var list = new GameItemList();
+        var listPtr = IL2CPP.Il2CppObjectBaseToPtrNotNull(list);
+        var pairClass = Il2CppClassPointerStore<GameItemPair>.NativeClassPtr;
 
-        foreach (var stack in stacks) list.Add(Pair(stack));
+        if (pairClass == IntPtr.Zero) throw new InvalidOperationException("the game's item pair type was not found");
+
+        var array = IL2CPP.il2cpp_array_new(pairClass, (ulong)stacks.Count);
+        var size = IL2CPP.il2cpp_array_element_size(IL2CPP.il2cpp_object_get_class(array));
+
+        if (size != PairSize) throw new InvalidOperationException($"an item pair takes {size} bytes, not {PairSize}");
+
+        var data = ArrayData(array);
+
+        for (var i = 0; i < stacks.Count; i++)
+        {
+            Marshal.WriteInt32(data, i * PairSize, stacks[i].ConfigId);
+            Marshal.WriteInt32(data, i * PairSize + 4, stacks[i].Count);
+        }
+
+        IL2CPP.il2cpp_gc_wbarrier_set_field(listPtr, listPtr + ListField(listPtr, "_items"), array);
+        Marshal.WriteInt32(listPtr + ListField(listPtr, "_size"), stacks.Count);
 
         return list;
-    }
-
-    /// <summary>
-    /// The pair's fields are also written straight into the game's memory: with the constructor alone, a reopened
-    /// received-items popup came up with its title but no items, which is what the popup does when it cannot find an id.
-    /// </summary>
-    private static GameItemPair Pair(ItemStack stack)
-    {
-        var pair = new GameItemPair(stack.ConfigId, stack.Count);
-        pair.key = stack.ConfigId;
-        pair.value = stack.Count;
-
-        return pair;
     }
 
     /// <summary>The list as the game will read it, checked against the history, so an empty popup is never opened.</summary>
     private static string? Mismatch(GameItemList list, IReadOnlyList<ItemStack> stacks)
     {
-        if (list.Count != stacks.Count) return $"the item list holds {list.Count} of {stacks.Count} items";
+        var listPtr = IL2CPP.Il2CppObjectBaseToPtrNotNull(list);
+        var count = Marshal.ReadInt32(listPtr + ListField(listPtr, "_size"));
+
+        if (count != stacks.Count) return $"the item list holds {count} of {stacks.Count} items";
+
+        var data = ArrayData(Marshal.ReadIntPtr(listPtr + ListField(listPtr, "_items")));
 
         for (var i = 0; i < stacks.Count; i++)
         {
-            var pair = list[i];
+            var id = Marshal.ReadInt32(data, i * PairSize);
+            var amount = Marshal.ReadInt32(data, i * PairSize + 4);
 
-            if (pair.key != stacks[i].ConfigId || pair.value != stacks[i].Count)
-                return $"item {i + 1} reads as {pair.key} x{pair.value}, not {stacks[i].ConfigId} x{stacks[i].Count}";
+            if (id != stacks[i].ConfigId || amount != stacks[i].Count)
+                return $"item {i + 1} reads as {id} x{amount}, not {stacks[i].ConfigId} x{stacks[i].Count}";
         }
 
         return null;
+    }
+
+    /// <summary>A pair of two ints: the item id, then the amount.</summary>
+    private const int PairSize = 8;
+
+    /// <summary>An array's elements start after its object header, bounds and length.</summary>
+    private static IntPtr ArrayData(IntPtr array) => array + 4 * IntPtr.Size;
+
+    private static int ListField(IntPtr listPtr, string name)
+    {
+        var field = IL2CPP.GetIl2CppField(IL2CPP.il2cpp_object_get_class(listPtr), name);
+
+        if (field == IntPtr.Zero) throw new InvalidOperationException($"the game's item list has no {name}");
+
+        return (int)IL2CPP.il2cpp_field_get_offset(field);
     }
 
     private static GameIntList? GameKinds(IReadOnlyList<int>? kinds)
