@@ -101,4 +101,21 @@ public class HistoryJsonTests
     }
 
     private static History Load(string text) => Assert.IsType<HistoryRead.Loaded>(HistoryJson.Read(text)).History;
+
+    [Fact]
+    public void ARowsReadStateAndPictureSurviveARestart()
+    {
+        var history = new History();
+
+        history.Record(new ToastNote(1, Make.Notice("a"), Make.T0, false, false) { Icon = "Res/Item/wood.png" }, null, null);
+        history.Record(Make.Toast(2, "b"), null, null);
+        history.MarkRead(history.Entries[1].Seq);
+
+        var loaded = Load(HistoryJson.Write(history));
+
+        Assert.Equal("Res/Item/wood.png", loaded.Entries[1].Icon);
+        Assert.Null(loaded.Entries[0].Icon);
+        Assert.False(loaded.IsUnread(loaded.Entries[1]));
+        Assert.True(loaded.IsUnread(loaded.Entries[0]));
+    }
 }

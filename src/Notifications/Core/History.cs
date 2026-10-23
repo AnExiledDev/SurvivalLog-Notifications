@@ -22,6 +22,12 @@ public sealed record HistoryEntry(
 
     public bool HasToastAction { get; init; }
 
+    /// <summary>The picture its toast showed, as a path from the game's WebUI folder, or null.</summary>
+    public string? Icon { get; init; }
+
+    /// <summary>The mark this entry had when the player opened it in the list; raised again, it is unread again.</summary>
+    public long ReadMark { get; init; }
+
     /// <summary>A popup can be rebuilt, or the Toolkit still holds the toast's click action.</summary>
     public bool IsClickable => Reopen != null || (ToastId != 0 && HasToastAction);
 }
@@ -65,7 +71,10 @@ public sealed class History
     /// <summary>The highest mark given out so far.</summary>
     public long LatestMark => Next - 1;
 
-    public int UnreadCount => _entries.Count(entry => entry.Mark > SeenMark);
+    public int UnreadCount => _entries.Count(IsUnread);
+
+    /// <summary>Raised since the player last marked everything read, and not opened in the list since.</summary>
+    public bool IsUnread(HistoryEntry entry) => entry.Mark > Math.Max(SeenMark, entry.ReadMark);
 
     /// <summary>Set by every change, cleared by whoever saves the history.</summary>
     public bool IsDirty { get; set; }
@@ -84,6 +93,7 @@ public sealed class History
         {
             ToastId = note.Id,
             HasToastAction = note.HasClickAction,
+            Icon = note.Icon,
         });
     }
 
@@ -114,6 +124,32 @@ public sealed class History
         IsDirty = true;
 
         return true;
+    }
+
+    /// <summary>The player opened this row in the list. False when it was already read or is not here.</summary>
+    public bool MarkRead(long seq)
+    {
+        var at = _entries.FindIndex(entry => entry.Seq == seq);
+
+        if (at < 0 || !IsUnread(_entries[at])) return false;
+
+        _entries[at] = _entries[at] with { ReadMark = _entries[at].Mark };
+        IsDirty = true;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Empties the list up to this mark. An entry raised after it (the player had not seen it when they cleared) stays.
+    /// Returns how many entries went.
+    /// </summary>
+    public int Clear(long mark)
+    {
+        var removed = _entries.RemoveAll(entry => entry.Mark <= mark);
+
+        if (removed > 0) IsDirty = true;
+
+        return removed;
     }
 
     public HistoryEntry? Find(long seq) => _entries.Find(entry => entry.Seq == seq);

@@ -26,7 +26,11 @@ public readonly record struct ItemStack(int ConfigId, int Count);
 /// One toast trigger as the Toolkit reports it, with the id as a plain number. A merge carries the id of the toast it
 /// joined.
 /// </summary>
-public sealed record ToastNote(long Id, Note Content, DateTime RaisedAtUtc, bool HasClickAction, bool IsMerge);
+public sealed record ToastNote(long Id, Note Content, DateTime RaisedAtUtc, bool HasClickAction, bool IsMerge)
+{
+    /// <summary>The picture the toast showed, as a path from the game's WebUI folder, or null.</summary>
+    public string? Icon { get; init; }
+}
 
 /// <summary>
 /// What it takes to open a game popup again with the same data it first had. Kept with the history entry, and saved

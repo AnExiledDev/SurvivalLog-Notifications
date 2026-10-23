@@ -63,6 +63,14 @@ internal sealed class PhoneApp
                 _ledger.MarkSeen(seen.Mark);
 
                 break;
+            case PageMessage.Read read:
+                _ledger.MarkRead(read.Seq);
+
+                break;
+            case PageMessage.Clear clear:
+                _ledger.Clear(clear.Mark);
+
+                break;
             case PageMessage.NoScript:
                 _sync.ScriptMissing();
 
@@ -78,7 +86,7 @@ internal sealed class PhoneApp
         }
     }
 
-    private string View() => PhoneView.Json(_ledger.Current, GameState.IsChinese());
+    private string View() => PhoneView.Json(_ledger.Current, new GameWords(WebIcons.Shared(_log)), GameState.Stamp()?.Day);
 
     private void Run(string javaScript, double now)
     {

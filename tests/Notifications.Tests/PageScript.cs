@@ -23,6 +23,9 @@ internal sealed class PageScript
 
     public void Install(History? history, bool isChinese = false) => Run(PageCalls.Install(Resource("Notifications.notifications.js"), PhoneView.Json(history, isChinese)));
 
+    /// <summary>The script with a view drawn from the game's words and pictures, on this in-game day.</summary>
+    public void Install(History? history, IViewWords words, int? today) => Run(PageCalls.Install(Resource("Notifications.notifications.js"), PhoneView.Json(history, words, today)));
+
     public void Update(History? history, bool isChinese = false) => Run(PageCalls.Set(PhoneView.Json(history, isChinese)));
 
     public void Probe() => Run(PageCalls.Probe);

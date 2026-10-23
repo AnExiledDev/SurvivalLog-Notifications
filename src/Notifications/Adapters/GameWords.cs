@@ -8,9 +8,16 @@ namespace Notifications.Adapters;
 /// The game's own words for a notice, read from its tables in the language it is set to. A line the game has no text
 /// for is null, and the core falls back to its own.
 /// </summary>
-internal sealed class GameWords : IGameWords
+internal sealed class GameWords : IViewWords
 {
-    public GameWords() => IsChinese = GameState.IsChinese();
+    private readonly IconIndex _icons;
+
+    /// <param name="icons">The game's web icons; without them no item has a picture.</param>
+    public GameWords(IconIndex? icons = null)
+    {
+        IsChinese = GameState.IsChinese();
+        _icons = icons ?? IconIndex.Empty;
+    }
 
     public bool IsChinese { get; }
 
@@ -28,6 +35,9 @@ internal sealed class GameWords : IGameWords
 
     public string? ItemName(int configId) =>
         Read(config => config.Get_Config_Item(configId) is { } item ? Localized(config, item.ItemName) ?? NonEmpty(item.ItemName_Local) : null);
+
+    public string? ItemIcon(int configId) =>
+        _icons.Resolve(Read(config => config.Get_Config_Item(configId) is { } item ? NonEmpty(item.WebIcon) ?? NonEmpty(item.Icon) : null));
 
     public string? BuffName(int buffId) =>
         buffId <= 0 ? null : Read(config => config.Get_Config_Buff(buffId) is { } buff ? Localized(config, buff.Name) ?? NonEmpty(buff.Name_Local) : null);

@@ -6,6 +6,7 @@ var window = this;
 var posted = [];
 var timers = [];
 
+window.location = { href: 'https://ui.local/index.html' };
 window.vuplex = { postMessage: function (message) { posted.push(String(message)); } };
 
 function setInterval(callback) {
@@ -177,7 +178,8 @@ function fakeWindow(location, doc) {
 }
 
 // The phone's home screen from PhoneSMS.html: #app holding the Vue state with the day label, the root that closes the
-// phone when clicked outside the panel, the panel that stops clicks, the home view, and the dock with its apps.
+// phone when clicked outside the panel, the panel that stops clicks, the home view with its empty app grid, and the
+// dock with its apps.
 // spec: { dayLabel }
 function buildPhoneDocument(spec) {
     var doc = fakeDocument();
@@ -185,6 +187,7 @@ function buildPhoneDocument(spec) {
     var root = app.appendChild(new FakeElement('div', 'app-root'));
     var panel = root.appendChild(new FakeElement('div', 'sms-panel'));
     var home = panel.appendChild(new FakeElement('div', 'view view-home is-active'));
+    home.appendChild(new FakeElement('div', 'app-grid'));
     var dock = home.appendChild(new FakeElement('div', 'app-dock'));
 
     app.id = 'app';

@@ -70,6 +70,16 @@ public sealed class Ledger
         if (Current != null && Current.MarkSeen(mark)) Revision++;
     }
 
+    public void MarkRead(long seq)
+    {
+        if (Current != null && Current.MarkRead(seq)) Revision++;
+    }
+
+    public void Clear(long mark)
+    {
+        if (Current != null && Current.Clear(mark) > 0) Revision++;
+    }
+
     public void Attach(long toastId, Reopen reopen)
     {
         if (Current != null && Current.Attach(toastId, reopen)) Revision++;

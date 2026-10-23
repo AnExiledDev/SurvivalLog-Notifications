@@ -86,12 +86,16 @@ public static class HistoryJson
         json.WriteStartObject();
         json.WriteNumber("seq", entry.Seq);
         json.WriteNumber("mark", entry.Mark);
+
+        if (entry.ReadMark > 0) json.WriteNumber("read", entry.ReadMark);
+
         json.WriteString("source", entry.Content.Source);
         json.WriteString("title", entry.Content.Title);
 
         if (entry.Content.Body != null) json.WriteString("body", entry.Content.Body);
 
         json.WriteString("kind", KindName(entry.Content.Kind));
+        WriteOptional(json, "icon", entry.Icon);
         json.WriteNumber("count", entry.Count);
         json.WriteString("first", entry.FirstUtc.ToString("O", CultureInfo.InvariantCulture));
         json.WriteString("last", entry.LastUtc.ToString("O", CultureInfo.InvariantCulture));
@@ -198,7 +202,11 @@ public static class HistoryJson
         var reopen = item.TryGetProperty("reopen", out var payload) ? ReadReopen(payload) : null;
         var content = new Note(source, title, Text(item, "body"), KindOf(Text(item, "kind")));
 
-        return new HistoryEntry(seq.Value, mark, content, (int)Math.Max(1, Long(item, "count") ?? 1), first, last, stamp, reopen);
+        return new HistoryEntry(seq.Value, mark, content, (int)Math.Max(1, Long(item, "count") ?? 1), first, last, stamp, reopen)
+        {
+            ReadMark = Math.Max(0, Long(item, "read") ?? 0),
+            Icon = Text(item, "icon"),
+        };
     }
 
     /// <summary>A payload this version cannot rebuild leaves the entry readable but not clickable.</summary>
@@ -253,7 +261,7 @@ public static class HistoryJson
         return list.EnumerateArray().Select(value => value.TryGetInt32(out var number) ? number : 0).ToList();
     }
 
-    private static string KindName(NoteKind kind) => kind switch
+    public static string KindName(NoteKind kind) => kind switch
     {
         NoteKind.Success => "success",
         NoteKind.Warning => "warning",

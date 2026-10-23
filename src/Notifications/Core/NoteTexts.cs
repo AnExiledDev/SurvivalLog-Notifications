@@ -18,6 +18,9 @@ public interface IGameWords
     string? ItemName(int configId);
 }
 
+/// <summary>One number a popup showed, such as "Kills 38" or "Faith +2". Up is a gain.</summary>
+public sealed record NoteStat(string Label, string Value, bool IsUp);
+
 /// <summary>
 /// What each notice says. The game's own localized text comes first, so a toast reads like the popup it stands for;
 /// the fallbacks here are used only when the game has no text for a line.
@@ -106,6 +109,42 @@ public static class NoteTexts
         new(Source(words.IsChinese), Word(words, "SR_Web_CoreUI1_83", "New survivor unlocked", "新幸存者已解锁"),
             Join(words, new[] { survivorName, Word(words, "SR_Web_CoreUI1_84", "Choose them from the main menu when you pick a survivor", "可在主菜单「选择幸存者」中开启") }),
             NoteKind.Success);
+
+    /// <summary>The wish popup's first line: the item longed for, or the thing done.</summary>
+    public static string WishLine(IGameWords words, Reopen.Wish wish) =>
+        wish.ItemConfigId > 0
+            ? Fill(Word(words, "WishText3", "Finally had the {0} you longed for", "终于吃到了盼望已久的【{0}】"), Name(words, wish.ItemConfigId))
+            : Word(words, "WishPool_FinishedText", "Finally did what you always wanted to do.", "终于做了一直想做的事。");
+
+    public static IReadOnlyList<NoteStat> WishStats(IGameWords words, Reopen.Wish wish)
+    {
+        var stats = new List<NoteStat>();
+
+        if (wish.FaithValue > 0)
+        {
+            var faith = Fill(Word(words, "SR_UI_WishFinished_0", "Faith +{0}", "信念点+{0}"), "").Trim().TrimEnd('+').Trim();
+
+            stats.Add(new NoteStat(faith, "+" + Number(wish.FaithValue), true));
+        }
+
+        if (wish.SurvivalValue > 0) stats.Add(new NoteStat(Word(words, "SR_Web_WishFinished_2", "Survival points", "生存点"), "+" + Number(wish.SurvivalValue), true));
+
+        return stats;
+    }
+
+    public static IReadOnlyList<NoteStat> WaveStats(IGameWords words, Reopen.Wave wave) => new[]
+    {
+        new NoteStat(Word(words, "SR_Web_TowerWaveReport_2", "Kills", "击杀"), Number(wave.KillCount), false),
+        new NoteStat(Word(words, "SR_Web_TowerWaveReport_3", "Device wear", "装置损耗"), Number(wave.DeviceDamage), false),
+        new NoteStat(Word(words, "SR_Web_TowerWaveReport_4", "Door and window wear", "门窗损耗"), Number(wave.StructureDamage), false),
+    };
+
+    /// <summary>The supplies line of a wave report, or null when the wave gave none.</summary>
+    public static string? WaveSupplies(IGameWords words, Reopen.Wave wave) =>
+        Plain(wave.RewardText) is { Length: > 0 } reward ? Word(words, "SR_Web_TowerWaveReport_5", "Supplies", "补给") + " " + reward : null;
+
+    /// <summary>An item's name in the game's language, or its number when the game has no name for it.</summary>
+    public static string ItemName(IGameWords words, int configId) => Name(words, configId);
 
     /// <summary>Up to <see cref="MostItemsListed"/> items as "name xN", then how many more there are.</summary>
     public static string ItemLines(IGameWords words, IReadOnlyList<ItemStack> stacks)

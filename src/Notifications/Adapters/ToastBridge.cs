@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using ExiledToolkit;
@@ -30,13 +31,41 @@ internal sealed class ToastBridge
     /// <summary>Raises a toast; the history takes it with this popup. The toast's id, or 0 when the Toolkit did not take it.</summary>
     public long Show(Note note, Reopen? reopen, Action? onClick)
     {
-        var id = Toasts.Show(new ToastRequest(note.Source, note.Title) { Body = note.Body, Kind = KindOf(note.Kind), OnClick = onClick });
+        var id = Toasts.Show(Request(note, reopen) with { OnClick = onClick });
 
         if (id.IsNone) return 0;
 
         _waiting.Add(id.Value, reopen, DateTime.UtcNow);
 
         return id.Value;
+    }
+
+    /// <summary>
+    /// The toast for a notice. Received items show as chips with their pictures instead of a line of text, and a wish
+    /// shows the item wished for.
+    /// </summary>
+    private ToastRequest Request(Note note, Reopen? reopen)
+    {
+        var request = new ToastRequest(note.Source, note.Title) { Body = note.Body, Kind = KindOf(note.Kind) };
+
+        switch (reopen)
+        {
+            case Reopen.Items { Stacks.Count: > 0 } items:
+            {
+                var words = new GameWords(WebIcons.Shared(_log));
+                var chips = items.Stacks.Take(ToastItem.Max).Select(stack => new ToastItem(NoteTexts.ItemName(words, stack.ConfigId))
+                {
+                    Icon = words.ItemIcon(stack.ConfigId),
+                    Count = stack.Count,
+                }).ToList();
+
+                return request with { Body = NoteTexts.Plain(items.Desc) is { Length: > 0 } desc ? desc : null, Items = chips, Icon = chips[0].Icon };
+            }
+            case Reopen.Wish { ItemConfigId: > 0 } wish:
+                return request with { Icon = new GameWords(WebIcons.Shared(_log)).ItemIcon(wish.ItemConfigId) };
+            default:
+                return request;
+        }
     }
 
     /// <summary>Gives a toast already raised the popup it stands for, which came after it.</summary>
@@ -50,7 +79,10 @@ internal sealed class ToastBridge
     {
         var id = record.Id.Value;
         var reopen = _waiting.Take(id);
-        var note = new ToastNote(id, new Note(record.Source, record.Title, record.Body, KindOf(record.Kind)), record.RaisedAtUtc, record.HasClickAction, record.IsMerge);
+        var note = new ToastNote(id, new Note(record.Source, record.Title, record.Body, KindOf(record.Kind)), record.RaisedAtUtc, record.HasClickAction, record.IsMerge)
+        {
+            Icon = record.Icon,
+        };
 
         _ledger.Record(note, GameState.Stamp(), reopen);
     }

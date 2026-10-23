@@ -202,4 +202,79 @@ public class HistoryTests
         Assert.Equal(42, history.Next);
         Assert.Equal(41, history.SeenMark);
     }
+
+    [Fact]
+    public void OpeningOneRowReadsOnlyThatRow()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "a"), null, null);
+        history.Record(Make.Toast(2, "b"), null, null);
+
+        Assert.True(history.MarkRead(history.Entries[1].Seq));
+        Assert.Equal(1, history.UnreadCount);
+        Assert.False(history.IsUnread(history.Entries[1]));
+        Assert.True(history.IsUnread(history.Entries[0]));
+        Assert.True(history.IsDirty);
+    }
+
+    [Fact]
+    public void ReadingARowTwiceOrAnUnknownRowChangesNothing()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "a"), null, null);
+        history.MarkRead(history.Entries[0].Seq);
+        history.IsDirty = false;
+
+        Assert.False(history.MarkRead(history.Entries[0].Seq));
+        Assert.False(history.MarkRead(999));
+        Assert.False(history.IsDirty);
+    }
+
+    [Fact]
+    public void AReadNoticeThatComesAgainIsUnreadAgain()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "stamina"), null, null);
+        history.MarkRead(history.Entries[0].Seq);
+        history.Record(Make.Toast(1, "stamina", isMerge: true), null, null);
+
+        Assert.True(history.IsUnread(history.Entries[0]));
+        Assert.Equal(1, history.UnreadCount);
+    }
+
+    [Fact]
+    public void ClearingRemovesWhatTheListShowedButKeepsWhatCameInSince()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "a"), null, null);
+        history.Record(Make.Toast(2, "b"), null, null);
+
+        var shown = history.LatestMark;
+
+        history.Record(Make.Toast(3, "since"), null, null);
+
+        Assert.Equal(2, history.Clear(shown));
+        Assert.Equal(new[] { "since" }, Make.Titles(history));
+        Assert.True(history.IsDirty);
+    }
+
+    [Fact]
+    public void ANoticeRaisedAgainAfterTheListWasShownSurvivesTheClear()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "a"), null, null);
+        history.Record(Make.Toast(2, "b"), null, null);
+
+        var shown = history.LatestMark;
+
+        history.Record(Make.Toast(1, "a", isMerge: true), null, null);
+        history.Clear(shown);
+
+        Assert.Equal(new[] { "a" }, Make.Titles(history));
+    }
 }

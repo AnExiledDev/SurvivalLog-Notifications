@@ -70,12 +70,96 @@ public class PhoneViewTests
     }
 
     [Fact]
+    public void EachRowIsFiledAsAPopupAGameMessageOrAModNotice()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "wish"), null, Make.Wish());
+        history.Record(Make.Toast(2, "message"), null, null);
+        history.Record(new ToastNote(3, new Note("Storage Hub", "mod", null, NoteKind.Warning), Make.T0, false, false), null, null);
+
+        var rows = Rows(PhoneView.Json(history, false));
+
+        Assert.Equal(new[] { "mod", "msg", "popup" }, rows.Select(row => row.GetProperty("cat").GetString()));
+        Assert.Equal(new[] { false, true, true }, rows.Select(row => row.GetProperty("game").GetBoolean()));
+        Assert.Equal(new[] { "plug", "msg", "star" }, rows.Select(row => row.GetProperty("glyph").GetString()));
+        Assert.Equal(new[] { "warning", "info", "info" }, rows.Select(row => row.GetProperty("kind").GetString()));
+    }
+
+    [Fact]
+    public void ReceivedItemsComeWithTheirNamesCountsAndPictures()
+    {
+        var history = new History();
+        var words = new FakeWords();
+
+        words.Items[10] = "Wood";
+        words.Icons[10] = "Res/Item/wood.png";
+        history.Record(Make.Toast(1, "Received"), null, Make.Items("<b>From</b> the drone", (10, 4), (11, 1)));
+
+        var row = Rows(PhoneView.Json(history, words, null))[0];
+        var items = row.GetProperty("items").EnumerateArray().ToList();
+
+        Assert.Equal(new[] { "Wood", NoteTexts.ItemName(words, 11) }, items.Select(item => item.GetProperty("name").GetString()));
+        Assert.Equal(new[] { 4, 1 }, items.Select(item => item.GetProperty("count").GetInt32()));
+        Assert.Equal("Res/Item/wood.png", items[0].GetProperty("icon").GetString());
+        Assert.False(items[1].TryGetProperty("icon", out _));
+        Assert.Equal("Res/Item/wood.png", row.GetProperty("icon").GetString());
+        Assert.Equal("From the drone", row.GetProperty("body").GetString());
+    }
+
+    [Fact]
+    public void AWishShowsWhatWasWishedForAndItsGains()
+    {
+        var history = new History();
+        var words = new FakeWords();
+
+        words.Items[5] = "Hot pot";
+        words.Buffs[7] = "Content";
+        history.Record(Make.Toast(1, "Wish fulfilled"), null, new Reopen.Wish(5, 3, 2, 7, 1));
+
+        var row = Rows(PhoneView.Json(history, words, null))[0];
+        var stats = row.GetProperty("stats").EnumerateArray().ToList();
+
+        Assert.Equal("Finally had the Hot pot you longed for, Content", row.GetProperty("body").GetString());
+        Assert.Equal(new[] { "Faith", "Survival points" }, stats.Select(stat => stat.GetProperty("label").GetString()));
+        Assert.Equal(new[] { "+3", "+2" }, stats.Select(stat => stat.GetProperty("value").GetString()));
+        Assert.All(stats, stat => Assert.True(stat.GetProperty("up").GetBoolean()));
+    }
+
+    [Fact]
+    public void AModsToastKeepsThePictureItWasShownWith()
+    {
+        var history = new History();
+
+        history.Record(new ToastNote(1, new Note("Cooking Hub", "Dish ready", null, NoteKind.Success), Make.T0, false, false) { Icon = "Res/Item/soup.png" }, null, null);
+
+        Assert.Equal("Res/Item/soup.png", Rows(PhoneView.Json(history, false))[0].GetProperty("icon").GetString());
+    }
+
+    [Fact]
+    public void TheListKnowsHowManyNoticesTheSaveKeepsAndWhichDayIsToday()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "a"), null, null);
+
+        using var view = JsonDocument.Parse(PhoneView.Json(history, new FakeWords(), 12));
+
+        Assert.Equal(1, view.RootElement.GetProperty("kept").GetInt32());
+        Assert.Equal(History.Cap, view.RootElement.GetProperty("cap").GetInt32());
+        Assert.Equal(12, view.RootElement.GetProperty("today").GetInt32());
+        Assert.Equal("Kept with this save: {0} of {1}", view.RootElement.GetProperty("text").GetProperty("kept").GetString());
+    }
+
+    [Fact]
     public void OutOfAGameTheListIsEmpty()
     {
         using var view = JsonDocument.Parse(PhoneView.Json(null, false));
 
         Assert.Equal(0, view.RootElement.GetProperty("rows").GetArrayLength());
     }
+
+    private static List<JsonElement> Rows(string json) => JsonDocument.Parse(json).RootElement.GetProperty("rows").EnumerateArray().ToList();
 }
 
 public class PhoneSyncTests
@@ -143,6 +227,8 @@ public class PageMessageTests
     [Theory]
     [InlineData("open|12")]
     [InlineData("seen|5")]
+    [InlineData("read|7")]
+    [InlineData("clear|9")]
     [InlineData("noscript")]
     [InlineData("diag|frame gone")]
     public void ThePageScriptsMessagesAreUnderstood(string message) =>
@@ -153,12 +239,16 @@ public class PageMessageTests
     {
         Assert.Equal(new PageMessage.Open(12), PageMessage.Parse(PageMessage.Prefix + "open|12"));
         Assert.Equal(new PageMessage.Seen(5), PageMessage.Parse(PageMessage.Prefix + "seen|5"));
+        Assert.Equal(new PageMessage.Read(7), PageMessage.Parse(PageMessage.Prefix + "read|7"));
+        Assert.Equal(new PageMessage.Clear(9), PageMessage.Parse(PageMessage.Prefix + "clear|9"));
     }
 
     [Theory]
     [InlineData("open|-1")]
     [InlineData("open|abc")]
     [InlineData("seen|")]
+    [InlineData("read|x")]
+    [InlineData("clear|-2")]
     [InlineData("dance")]
     public void AMalformedMessageIsUnknown(string message) => Assert.IsType<PageMessage.Unknown>(PageMessage.Parse(PageMessage.Prefix + message));
 

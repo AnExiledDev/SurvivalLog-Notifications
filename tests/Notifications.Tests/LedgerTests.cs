@@ -187,4 +187,29 @@ public class LedgerTests
 
         return HistoryJson.Write(history);
     }
+
+    [Fact]
+    public void ReadingAndClearingAreSavedAndRedrawTheList()
+    {
+        _ledger.Follow(true, "save1", 0);
+        _ledger.Record(Make.Toast(1, "a"), null, null);
+        _ledger.Record(Make.Toast(2, "b"), null, null);
+
+        var before = _ledger.Revision;
+
+        _ledger.MarkRead(Current().Entries[0].Seq);
+
+        Assert.True(_ledger.Revision > before);
+        Assert.Equal(1, Current().UnreadCount);
+
+        before = _ledger.Revision;
+        _ledger.MarkRead(Current().Entries[0].Seq);
+
+        Assert.Equal(before, _ledger.Revision);
+
+        _ledger.Clear(Current().LatestMark);
+
+        Assert.True(_ledger.Revision > before);
+        Assert.Empty(Current().Entries);
+    }
 }

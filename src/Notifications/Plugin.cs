@@ -10,11 +10,11 @@ using Notifications.Core;
 namespace Notifications;
 
 [BepInPlugin(Guid, "Notifications", Version)]
-[BepInDependency(ExiledToolkit.Plugin.Guid, ">=0.4.0")]
+[BepInDependency(ExiledToolkit.Plugin.Guid, ">=0.7.0")]
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.2.2";
+    private const string Version = "0.3.0";
 
     public override void Load()
     {

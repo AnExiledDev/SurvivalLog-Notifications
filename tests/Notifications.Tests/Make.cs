@@ -62,7 +62,7 @@ internal sealed class FakeStore : IHistoryStore
 }
 
 /// <summary>The game's words, from tables the test fills.</summary>
-internal sealed class FakeWords : IGameWords
+internal sealed class FakeWords : IViewWords
 {
     public FakeWords(bool isChinese = false) => IsChinese = isChinese;
 
@@ -75,4 +75,12 @@ internal sealed class FakeWords : IGameWords
     public string? Constant(string id) => Constants.TryGetValue(id, out var text) ? text : null;
 
     public string? ItemName(int configId) => Items.TryGetValue(configId, out var name) ? name : null;
+
+    public Dictionary<int, string> Icons { get; } = new();
+
+    public Dictionary<int, string> Buffs { get; } = new();
+
+    public string? ItemIcon(int configId) => Icons.TryGetValue(configId, out var icon) ? icon : null;
+
+    public string? BuffName(int buffId) => Buffs.TryGetValue(buffId, out var name) ? name : null;
 }

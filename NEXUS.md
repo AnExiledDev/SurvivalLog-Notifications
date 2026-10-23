@@ -10,8 +10,9 @@ Survival Log stops play with a popup for many things that only need a glance: a 
 [*][b]Click to open[/b]: clicking the toast opens the original popup, with the same contents.[/*]
 [*][b]The game's short messages too[/b]: short messages, system unlocks and new survivor unlocks show as toasts that stay on screen longer. They can also be left to the game while still being kept on the phone.[/*]
 [*][b]Repeats merge[/b]: the same message several times in a row shows one toast with a count (x2, x3, ...).[/*]
-[*][b]Phone app[/b]: a Notifications app on the phone lists every notice of the current save, newest first, with the game day and hour. A dot on the icon shows when there is something new.[/*]
-[*][b]Reopen from the list[/b]: clicking a notice in the list opens its popup again, when it had one.[/*]
+[*][b]Phone app[/b]: a Notifications app on the phone lists every notice of the current save, newest first and grouped by game day, with the hour. Filters show only new notices, popups, messages or other mods. The icon shows how many notices are new, and the home screen shows the newest three.[/*]
+[*][b]Open in place[/b]: clicking a notice in the list opens it in place, with any received items and their amounts, or a wish's gains. Open popup opens its popup again, when it had one.[/*]
+[*][b]Read and clear[/b]: a notice stays new until you open it. Mark all read clears them all, and Clear list empties the list for this save after asking first.[/*]
 [*][b]Kept per save[/b]: up to the newest 500 notices, back when you load that save again.[/*]
 [/list]
 Popups that ask you to choose something, such as events and the item pickup window with Pick All, are never changed.
@@ -31,7 +32,7 @@ Works in English and Chinese.
 [list]
 [*]Survival Log 1.1.19131. A game update can break it until the mod is updated.[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]. Install it first.[/*]
-[*]Exiled's Toolkit 0.4.0 or newer, which draws the toasts and applies changed settings at once. Notifications does not load without it.[/*]
+[*]Exiled's Toolkit 0.7.0 or newer, which draws the toasts and applies changed settings at once. Notifications does not load without it.[/*]
 [/list]
 
 [size=5]Installation[/size]
@@ -67,8 +68,9 @@ Survival Log 会为许多只需看一眼的事情弹出窗口、打断游戏：�
 [*][b]点击打开[/b]：点击提示会打开原来的弹窗，内容不变。[/*]
 [*][b]游戏的简短提示也一样[/b]：简短提示、系统解锁和新幸存者解锁显示为停留更久的提示。也可以仍由游戏自己显示，同时记入手机。[/*]
 [*][b]重复合并[/b]：连续出现的相同提示只显示一条，并带有次数（x2、x3 等）。[/*]
-[*][b]手机应用[/b]：手机上的「通知」应用列出当前存档的每条通知，最新的在前，并显示游戏中的日期和时刻。有新通知时，图标上会出现小圆点。[/*]
-[*][b]从列表重新打开[/b]：点击列表中的通知，可以再次打开它的弹窗（如果有）。[/*]
+[*][b]手机应用[/b]：手机上的「通知」应用列出当前存档的每条通知，最新的在前，按游戏日期分组，并显示时刻。可以筛选只看新通知、弹窗、消息或其他模组。图标上显示新通知的数量，主屏幕上显示最新的三条。[/*]
+[*][b]就地展开[/b]：点击列表中的通知会就地展开，显示获得的物品和数量，或愿望带来的收益。「打开弹窗」可以再次打开它的弹窗（如果有）。[/*]
+[*][b]已读与清空[/b]：通知在你打开之前一直算作新通知。「全部已读」一次清除所有新通知，「清空列表」会先确认，然后清空本存档的列表。[/*]
 [*][b]按存档保存[/b]：最多保留最新的 500 条通知，再次读取该存档时会回来。[/*]
 [/list]
 需要你做选择的弹窗，例如事件和带有全部拾取按钮的拾取窗口，永远不会被改动。
@@ -88,7 +90,7 @@ Notifications 不会往存档里写入任何内容，也不会修改游戏文件
 [list]
 [*]Survival Log 1.1.19131。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]，请先安装。[/*]
-[*]Exiled's Toolkit 0.4.0 或更新版本，用于显示通知，并让改动的设置立即生效。没有它，Notifications 无法加载。[/*]
+[*]Exiled's Toolkit 0.7.0 或更新版本，用于显示通知，并让改动的设置立即生效。没有它，Notifications 无法加载。[/*]
 [/list]
 
 [size=5]安装[/size]
