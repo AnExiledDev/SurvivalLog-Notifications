@@ -25,4 +25,10 @@ Set one to `false` to get that popup back as the game shows it. Popups that are 
 | `CharacterUnlock` | `true` | Show new survivor unlocks as toasts. |
 | `KeepGameToastLook` | `false` | When `true`, the game draws its short messages and unlocks itself, as before, and they are only copied into the phone list. |
 
+## Basket
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `BasketBack` | `true` | Shows a "The basket is back" toast when the neighbour's or your companion's basket comes back with her return gifts, and keeps it in the phone list. |
+
 Every message these settings turn on goes into the phone's Notifications app, whether it shows as a toast or as the game draws it. Set one of the first three to `false` to leave that kind of message to the game alone and out of the list.

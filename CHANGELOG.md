@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- A "The basket is back" toast when the neighbour's or your companion's basket comes back with her return gifts. It is kept in the phone's Notifications app too. Turn it off with `BasketBack`.
+
 ## 0.3.0
 
 - The phone list is grouped by game day, with a picture for each notice, and filters for new notices, popups, messages and other mods.

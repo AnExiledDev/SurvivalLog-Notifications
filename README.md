@@ -9,6 +9,7 @@ Survival Log stops play with a popup for many things that only need a glance: a 
 - **Popups become toasts**: wishes fulfilled, items received, skill level-ups and drone deliveries show a toast instead of stopping play. Each can be switched back to the popup on its own. The zombie wave report stays the game's own popup unless you turn on `WaveReport`.
 - **Click to open**: clicking the toast opens the original popup, with the same contents it would have shown.
 - **The game's short messages too**: the game's own short messages, system unlocks and new survivor unlocks show as toasts, which are bigger and stay on screen longer than the game's. They can also be left to the game while still being kept on the phone.
+- **Basket is back**: a toast when the neighbour's or your companion's basket comes back with her return gifts. The game only sends a text message for it.
 - **Repeats merge**: the same message sent several times in a row shows one toast with a count (x2, x3, ...) instead of a stack of copies. Only messages that are exactly the same merge.
 - **Phone app**: a Notifications app on the phone's home screen lists every notice of the current save, newest first and grouped by game day, with where it came from, the hour, and how many times it came. Filters show only new notices, popups, messages or other mods. The icon shows how many notices are new, and the home screen shows the newest three.
 - **Open in place**: clicking a notice in the list opens it in place, with any received items and their amounts, or a wish's gains. Open popup closes the phone and opens its popup again, when it had one.
@@ -53,7 +54,7 @@ How long toasts stay on screen, which corner they use, and whether they are draw
 
 ## Troubleshooting
 
-Check `BepInEx\LogOutput.log` for `===== Notifications 0.3.0 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
+Check `BepInEx\LogOutput.log` for `===== Notifications 0.4.0 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
 
 If a saved list cannot be read, it is moved aside with a `.bad` ending in `BepInEx\config\notifications` and a new list starts, so the old one is never written over.
 

@@ -14,7 +14,7 @@ namespace Notifications;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.3.0";
+    private const string Version = "0.4.0";
 
     public override void Load()
     {
@@ -33,6 +33,7 @@ public sealed class Plugin : BasePlugin
         PageMessages.Apply(harmony, log.Write);
         PopupHooks.Apply(harmony, desk, log.Write);
         DroneHooks.Apply(harmony, desk, log.Write);
+        BasketHooks.Apply(harmony, desk, log.Write);
         GameToastHooks.Apply(harmony, desk, log.Write);
 
         LiveSettings.Watch(() =>
@@ -42,6 +43,7 @@ public sealed class Plugin : BasePlugin
             desk.UseSwitches(changed);
             PopupHooks.Use(changed);
             DroneHooks.Use(changed);
+            BasketHooks.Use(changed);
             GameToastHooks.Use(changed);
             log.Write(changed.Describe());
         }, entries);
@@ -84,11 +86,14 @@ public sealed class Plugin : BasePlugin
         Config.Bind("GameToasts", "KeepGameToastLook", false,
             "Let the game draw its own short messages and unlocks as before, and only copy them into the phone's Notifications app. Off: they show as toasts, which stay on screen as long as Exiled's Toolkit's Seconds setting says (7 seconds by default).\n" +
             "游戏的简短提示和解锁仍由游戏自己显示，只把它们记入手机「通知」。关闭时改为提示显示，停留时间由 Exiled's Toolkit 的 Seconds 设置决定（默认 7 秒）。"),
+        Config.Bind("Basket", "BasketBack", true,
+            "Show a \"The basket is back\" toast when the neighbour's or your companion's basket comes back with her return gifts, and keep it in the phone's Notifications app.\n" +
+            "邻居或同行者的「篮子」带着回礼回来时显示「篮子回来了」提示，并记入手机「通知」。"),
     };
 
     private static Switches Read(ConfigEntry<bool>[] entries) => new(
         entries[0].Value, entries[1].Value, entries[2].Value, entries[3].Value, entries[4].Value,
-        entries[5].Value, entries[6].Value, entries[7].Value, entries[8].Value);
+        entries[5].Value, entries[6].Value, entries[7].Value, entries[8].Value, entries[9].Value);
 
     private ConfigEntry<bool> Popup(string key, string description, bool isOn = true) => Config.Bind("Popups", key, isOn, description);
 

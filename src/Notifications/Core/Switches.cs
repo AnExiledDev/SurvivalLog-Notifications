@@ -12,7 +12,8 @@ public sealed record Switches(
     bool PopText,
     bool SystemUnlock,
     bool CharacterUnlock,
-    bool KeepGameToastLook)
+    bool KeepGameToastLook,
+    bool BasketBack)
 {
     /// <summary>One line for the log.</summary>
     public string Describe()
@@ -35,6 +36,6 @@ public sealed record Switches(
 
         var toasts = on.Count == 0 ? "no game toasts" : "game toasts: " + string.Join(", ", on) + (KeepGameToastLook ? " (kept in the game's look)" : "");
 
-        return popups + "; " + toasts;
+        return popups + "; " + toasts + (BasketBack ? "; basket returns" : "");
     }
 }

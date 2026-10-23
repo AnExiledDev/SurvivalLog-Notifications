@@ -98,6 +98,10 @@ public static class NoteTexts
     public static Note Drone(IGameWords words, IReadOnlyList<ItemStack> cargo) =>
         new(Source(words.IsChinese), words.IsChinese ? "无人机送货到了" : "Drone delivery arrived", ItemLines(words, cargo), NoteKind.Info);
 
+    /// <summary>The neighbour's or companion's basket came back with her return gifts in it.</summary>
+    public static Note BasketBack(bool isChinese) =>
+        new(Source(isChinese), isChinese ? "篮子回来了" : "The basket is back", isChinese ? "回礼已经放在篮子里。" : "Her return gifts are in the basket.", NoteKind.Info);
+
     /// <summary>A game toast's text as one line, or null when nothing is left to show.</summary>
     public static Note? PopText(bool isChinese, string? text) =>
         Plain(text) is { Length: > 0 } line ? new Note(Source(isChinese), line, null, NoteKind.Info) : null;
