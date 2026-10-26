@@ -18,8 +18,14 @@ internal sealed class PopupCloser
     private readonly PendingCloses _pending = new();
     private readonly Action<string> _log;
     private readonly HashSet<string> _reportedFailures = new();
+    // Made once: a method group passed each frame would be a new delegate each frame.
+    private readonly Func<PopupKind, PopupSight> _sight;
 
-    public PopupCloser(Action<string> log) => _log = log;
+    public PopupCloser(Action<string> log)
+    {
+        _log = log;
+        _sight = SightOf;
+    }
 
     /// <summary>A toast stood in for this popup, which the game is opening now.</summary>
     public void CloseOnceOpen(PopupKind kind) => _pending.Expect(kind, Time.frameCount, Time.unscaledTime);
@@ -29,9 +35,11 @@ internal sealed class PopupCloser
 
     public void Tick()
     {
-        foreach (var step in _pending.Due(Time.frameCount, Time.unscaledTime, SightOf))
+        var steps = _pending.Due(Time.frameCount, Time.unscaledTime, _sight);
+
+        for (var i = 0; i < steps.Count; i++)
         {
-            switch (step)
+            switch (steps[i])
             {
                 case CloseStep.Close close:
                     Close(close.Kind, close.Line);

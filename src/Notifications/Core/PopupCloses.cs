@@ -153,6 +153,9 @@ public sealed class PendingCloses
     /// <summary>The steps due in this frame: any give-ups, then at most one close or one settled close, then any last look.</summary>
     public IReadOnlyList<CloseStep> Due(int frame, double now, Func<PopupKind, PopupSight> sight)
     {
+        // Asked every frame and idle nearly always: then nothing can be due, and nothing is allocated.
+        if (_settling == null && _pending.Count == 0 && _lastClosed == null) return Array.Empty<CloseStep>();
+
         var steps = GiveUps(frame, now, sight);
 
         if (NextClose(frame, now, sight) is { } step) steps.Add(step);

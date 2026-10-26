@@ -29,7 +29,11 @@ public static class HistoryJson
 {
     public const int Version = 1;
 
-    public static string Write(History history)
+    public static string Write(History history) => Write(history.Next, history.SeenMark, history.Entries);
+
+    public static string Write(HistorySnapshot snapshot) => Write(snapshot.Next, snapshot.SeenMark, snapshot.Entries);
+
+    private static string Write(long next, long seenMark, IReadOnlyList<HistoryEntry> entries)
     {
         using var buffer = new MemoryStream();
 
@@ -37,11 +41,11 @@ public static class HistoryJson
         {
             json.WriteStartObject();
             json.WriteNumber("version", Version);
-            json.WriteNumber("next", history.Next);
-            json.WriteNumber("seen", history.SeenMark);
+            json.WriteNumber("next", next);
+            json.WriteNumber("seen", seenMark);
             json.WriteStartArray("entries");
 
-            foreach (var entry in history.Entries) WriteEntry(json, entry);
+            foreach (var entry in entries) WriteEntry(json, entry);
 
             json.WriteEndArray();
             json.WriteEndObject();

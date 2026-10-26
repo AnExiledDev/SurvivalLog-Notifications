@@ -170,16 +170,21 @@ public sealed class History
         return true;
     }
 
-    /// <summary>The Toolkit no longer knows this entry's toast, so it cannot be clicked through the Toolkit again.</summary>
-    public void ForgetToast(long seq)
+    /// <summary>The Toolkit no longer knows this entry's toast, so it cannot be clicked through the Toolkit again. False when that changed nothing.</summary>
+    public bool ForgetToast(long seq)
     {
         var at = _entries.FindIndex(entry => entry.Seq == seq);
 
-        if (at < 0 || _entries[at].ToastId == 0) return;
+        if (at < 0 || _entries[at].ToastId == 0) return false;
 
         _entries[at] = _entries[at] with { ToastId = 0 };
         IsDirty = true;
+
+        return true;
     }
+
+    /// <summary>The history as it is now, for writing on another thread while this one carries on changing.</summary>
+    public HistorySnapshot Snapshot() => new(Next, SeenMark, _entries.ToArray());
 
     /// <summary>
     /// Takes in the notices of a history kept while the save was not yet known; they are newer than everything here,

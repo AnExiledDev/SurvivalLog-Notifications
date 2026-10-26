@@ -21,6 +21,15 @@ public class PendingClosesTests
     }
 
     [Fact]
+    public void AnIdleFrameAllocatesNoList()
+    {
+        var first = _closes.Due(OpenFrame, OpenTime, Up());
+
+        Assert.Empty(first);
+        Assert.Same(first, _closes.Due(OpenFrame + 1, At(OpenFrame + 1), Up()));
+    }
+
+    [Fact]
     public void APopupThatIsUpOnTheNextFrameIsClosed()
     {
         _closes.Expect(PopupKind.Wish, OpenFrame, OpenTime);

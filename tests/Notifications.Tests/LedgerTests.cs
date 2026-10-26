@@ -149,6 +149,69 @@ public class LedgerTests
     }
 
     [Fact]
+    public void AWriteThatFailsAfterItWasHandedOverIsWrittenAgainAndLoggedOnce()
+    {
+        _ledger.Follow(true, "save1", 0);
+        _ledger.Record(Make.Toast(1, "a"), null, null);
+        _ledger.Flush(10);
+
+        Assert.Equal(1, _store.Writes);
+
+        _store.LateFailure = "save1.json: disk full";
+        _ledger.Flush(11);
+
+        Assert.Equal(1, _store.Writes);
+
+        _ledger.Flush(10 + Ledger.FlushSeconds);
+
+        Assert.Equal(2, _store.Writes);
+
+        _store.LateFailure = "save1.json: disk full";
+        _ledger.Flush(10 + 2 * Ledger.FlushSeconds);
+
+        Assert.Equal(3, _store.Writes);
+        Assert.Single(_log);
+    }
+
+    [Fact]
+    public void ForgettingAToastRedrawsThePhoneOnlyWhenTheEntryChanged()
+    {
+        _ledger.Follow(true, "save1", 0);
+        _ledger.Record(Make.Toast(3, "mod notice", hasClickAction: true), null, null);
+
+        var seq = Current().Entries[0].Seq;
+        var before = _ledger.Revision;
+
+        _ledger.ForgetToast(seq);
+
+        Assert.True(_ledger.Revision > before);
+        Assert.False(Current().Entries[0].IsClickable);
+
+        before = _ledger.Revision;
+        _ledger.ForgetToast(seq);
+        _ledger.ForgetToast(seq + 100);
+
+        Assert.Equal(before, _ledger.Revision);
+    }
+
+    [Fact]
+    public void TheSameSaveEveryFrameKeepsItsHistoryAndANewOneSwapsIt()
+    {
+        _store.Files["save2.json"] = new StoredText.Found(Saved("second's"));
+
+        for (var frame = 0; frame < 3; frame++) _ledger.Follow(true, "save1", frame);
+
+        _ledger.Record(Make.Toast(1, "first's"), null, null);
+        _ledger.Follow(true, "save1", 4);
+
+        Assert.Equal(new[] { "first's" }, Make.Titles(Current()));
+
+        _ledger.Follow(true, "save2", 5);
+
+        Assert.Equal(new[] { "second's" }, Make.Titles(Current()));
+    }
+
+    [Fact]
     public void ThePhoneIsToldOfEveryChangeAndOnlyOfChanges()
     {
         _ledger.Follow(true, "save1", 0);

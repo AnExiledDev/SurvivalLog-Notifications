@@ -13,6 +13,8 @@ namespace Notifications.Adapters;
 internal static class PageMessages
 {
     private static readonly ConcurrentQueue<PageMessage> Queue = new();
+    // Handed out when the queue is empty, which is nearly every frame, so that frame allocates nothing.
+    private static readonly PageMessage Nothing = new PageMessage.Unknown("");
     private static Action<string> _log = _ => { };
     private static bool _hasReportedFailure;
 
@@ -33,7 +35,7 @@ internal static class PageMessages
             return true;
         }
 
-        message = new PageMessage.Unknown("");
+        message = Nothing;
 
         return false;
     }

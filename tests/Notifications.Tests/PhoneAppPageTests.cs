@@ -27,6 +27,7 @@ public class PhoneAppPageTests
         var page = PageScript.WithPhone();
 
         page.Install(null, isChinese: true);
+        page.Click(".is-slnotify");
 
         Assert.Equal("通知", page.TextAt(".is-slnotify .app-label"));
         Assert.Equal("暂无通知", page.TextAt(".slnotify-view .sn-et"));
@@ -58,6 +59,7 @@ public class PhoneAppPageTests
         history.Record(ModToast(2, "Not enough stamina", isMerge: true), new GameStamp(12, 18), null);
 
         page.Install(history, new FakeWords(), 12);
+        page.Click(".is-slnotify");
 
         Assert.Equal(new[] { "Not enough stamina", "Wish fulfilled" }, page.Texts(".slnotify-row .sn-title"));
         Assert.Equal(new[] { "18:00", "07:00" }, page.Texts(".slnotify-row .sn-time"));
@@ -75,6 +77,7 @@ public class PhoneAppPageTests
         history.Record(Make.Toast(1, "Shelter upgraded"), null, null);
         history.Record(ModToast(2, "Not enough stamina"), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
 
         Assert.Equal(new[] { "Storage Hub Rest first" }, page.Texts(".slnotify-row .sn-body"));
         Assert.Equal(new[] { "Storage Hub" }, page.Texts(".slnotify-row .sn-src"));
@@ -91,6 +94,7 @@ public class PhoneAppPageTests
         words.Icons[10] = "Res/Item/wood.png";
         history.Record(Make.Toast(1, "Received"), null, Make.Items(null, (10, 4), (11, 1), (12, 2), (13, 7), (14, 1)));
         page.Install(history, words, null);
+        page.Click(".is-slnotify");
 
         Assert.Equal(new[] { "Wood x4", "#11 x1", "#12 x2", "+2 more" }, page.Texts(".slnotify-row .sn-item"));
         Assert.Equal("https://ui.local/Res/Item/wood.png", page.Text("phone.document.querySelector('.sn-item img').getAttribute('src')"));
@@ -110,6 +114,7 @@ public class PhoneAppPageTests
 
         history.Record(Make.Toast(1, "Wish fulfilled"), null, new Reopen.Wish(5, 3, 2, 0, 1));
         page.Install(history);
+        page.Click(".is-slnotify");
 
         Assert.Equal(new[] { "Faith +3", "Survival points +2" }, page.Texts(".slnotify-row .sn-stat.sn-up"));
     }
@@ -120,6 +125,7 @@ public class PhoneAppPageTests
         var page = PageScript.WithPhone();
 
         page.Install(new History());
+        page.Click(".is-slnotify");
 
         Assert.Equal("No notices yet", page.TextAt(".slnotify-view .sn-et"));
         Assert.True(page.Has(".sn-foot.slnotify-hidden"));
@@ -213,6 +219,7 @@ public class PhoneAppPageTests
 
         history.Record(Make.Toast(1, "Order ready", hasClickAction: true), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
         page.ClickRow(history.Entries[0].Seq);
 
         Assert.Equal("Open", page.TextAt(".slnotify-row.is-open .sn-open"));
@@ -248,6 +255,7 @@ public class PhoneAppPageTests
         history.MarkSeen(history.LatestMark);
         history.Record(ModToast(3, "mod"), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
 
         Assert.Equal(new[] { "All 3", "New 1", "Popups 1", "Messages 1", "Mods 1" }, page.Texts(".sn-filters .sn-chip"));
 
@@ -273,6 +281,7 @@ public class PhoneAppPageTests
 
         history.Record(Make.Toast(1, "message"), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
         page.Click(".sn-chip.sn-f-mod");
 
         Assert.Equal(0, page.Count(".slnotify-row"));
@@ -288,6 +297,10 @@ public class PhoneAppPageTests
         history.Record(Make.Toast(1, "a"), null, null);
         history.Record(Make.Toast(2, "b"), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
+
+        Assert.Equal(2, page.Count(".slnotify-row.is-unread"));
+
         page.Click(".sn-readall");
 
         Assert.Equal(new[] { "seen|" + history.LatestMark }, page.Posted());
@@ -304,6 +317,7 @@ public class PhoneAppPageTests
 
         history.Record(Make.Toast(1, "a"), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
 
         Assert.Equal("Kept with this save: 1 of " + History.Cap + " Clear list", page.TextAt(".sn-foot"));
 
@@ -327,6 +341,10 @@ public class PhoneAppPageTests
 
         history.Record(Make.Toast(1, "a"), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
+
+        Assert.Equal(1, page.Count(".slnotify-row"));
+
         page.Click(".sn-clear");
         page.Click(".sn-yes");
 
@@ -408,6 +426,7 @@ public class PhoneAppPageTests
 
         history.Record(Make.Toast(1, "first"), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
         page.Click(".sn-chip.sn-f-msg");
         page.ClickRow(history.Entries[0].Seq);
         history.Record(Make.Toast(2, "second"), null, null);
@@ -453,8 +472,12 @@ public class PhoneAppPageTests
         page.Run("phone.document.querySelector('.is-slnotify').remove(); phone.document.querySelector('.slnotify-view').remove(); phone.document.querySelector('.sn-peek').remove(); phone.mutate();");
 
         Assert.Equal(1, page.Count(".app-dock .is-slnotify"));
-        Assert.Equal(new[] { "kept" }, page.Texts(".slnotify-row .sn-title"));
+        Assert.Equal(1, page.Count(".sms-panel .slnotify-view"));
         Assert.Equal(new[] { "kept" }, page.Texts(".sn-card .sn-title"));
+
+        page.Click(".is-slnotify");
+
+        Assert.Equal(new[] { "kept" }, page.Texts(".slnotify-row .sn-title"));
     }
 
     [Fact]
@@ -471,6 +494,97 @@ public class PhoneAppPageTests
 
         page.Run("runTimers();");
 
+        Assert.Equal(new[] { "kept" }, page.Texts(".sn-card .sn-title"));
+
+        page.Click(".is-slnotify");
+
+        Assert.Equal(new[] { "kept" }, page.Texts(".slnotify-row .sn-title"));
+    }
+
+    [Fact]
+    public void AnUnchangedListSentAgainKeepsTheRowsAsTheyAre()
+    {
+        var page = PageScript.WithPhone();
+        var history = new History();
+        var list = new PhoneList();
+
+        history.Record(Make.Toast(1, "first"), null, null);
+        history.Record(Make.Toast(2, "second"), null, null);
+        page.Install(history, list);
+        page.Click(".is-slnotify");
+        page.Run("phone.document.querySelectorAll('.slnotify-row').forEach(function (r) { r.__mark = 7; });");
+        page.Send(history, list);
+
+        Assert.Equal(new[] { "second", "first" }, page.Texts(".slnotify-row .sn-title"));
+        Assert.Equal(2, page.Number("phone.document.querySelectorAll('.slnotify-row').filter(function (r) { return r.__mark === 7; }).length"));
+    }
+
+    [Fact]
+    public void ANewNoticeIsAddedOnTopAndTheOthersAreKept()
+    {
+        var page = PageScript.WithPhone();
+        var history = new History();
+        var list = new PhoneList();
+
+        history.Record(Make.Toast(1, "first"), null, null);
+        page.Install(history, list);
+        page.Click(".is-slnotify");
+        page.Run("phone.document.querySelector('.slnotify-row').__mark = 7;");
+        history.Record(Make.Toast(2, "second"), null, null);
+        page.Send(history, list);
+
+        Assert.Equal(new[] { "second", "first" }, page.Texts(".slnotify-row .sn-title"));
+        Assert.True(page.Is("phone.document.querySelectorAll('.slnotify-row')[1].__mark === 7"));
+    }
+
+    [Fact]
+    public void ARowSentByANumberThePageDoesNotKnowAsksForTheWholeListAndKeepsTheRows()
+    {
+        var page = PageScript.WithPhone();
+        var history = new History();
+        var list = new PhoneList();
+
+        history.Record(Make.Toast(1, "first"), null, null);
+        page.Install(history, list);
+        page.Click(".is-slnotify");
+        page.Run(PageCalls.Set("{\"rows\":[999]}"));
+
+        Assert.Contains("resync", page.Posted());
+        Assert.Equal(new[] { "first" }, page.Texts(".slnotify-row .sn-title"));
+
+        page.Send(history, list);
+
+        Assert.Equal(new[] { "first" }, page.Texts(".slnotify-row .sn-title"));
+    }
+
+    [Fact]
+    public void ANoticeRaisedAgainIsRedrawnWithItsNewCount()
+    {
+        var page = PageScript.WithPhone();
+        var history = new History();
+        var list = new PhoneList();
+
+        history.Record(Make.Toast(1, "Not enough stamina"), null, null);
+        page.Install(history, list);
+        page.Click(".is-slnotify");
+        history.Record(Make.Toast(1, "Not enough stamina", isMerge: true), null, null);
+        page.Send(history, list);
+
+        Assert.Equal(new[] { "x2" }, page.Texts(".slnotify-row .sn-count"));
+    }
+
+    [Fact]
+    public void AnAppPartThisPageDidNotMakeIsReplaced()
+    {
+        var page = new PageScript("var phone = addPhone({}); phone.document.querySelector('.app-dock').appendChild(new FakeElement('div', 'app is-slnotify'));");
+        var history = new History();
+
+        history.Record(Make.Toast(1, "kept"), null, null);
+        page.Install(history);
+        page.Click(".is-slnotify");
+
+        Assert.Equal(1, page.Count(".app-dock .is-slnotify"));
+        Assert.True(page.Has(".slnotify-view.is-active"));
         Assert.Equal(new[] { "kept" }, page.Texts(".slnotify-row .sn-title"));
     }
 
@@ -482,6 +596,7 @@ public class PhoneAppPageTests
 
         history.Record(Make.Toast(1, "first"), null, null);
         page.Install(history);
+        page.Click(".is-slnotify");
         history.Record(Make.Toast(2, "second"), null, null);
         page.Update(history);
 

@@ -168,6 +168,23 @@ public class HistoryTests
     }
 
     [Fact]
+    public void ASnapshotKeepsTheHistoryAsItWasWhileTheGameCarriesOn()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "before"), null, null);
+
+        var snapshot = history.Snapshot();
+
+        history.Record(Make.Toast(2, "after"), null, null);
+        history.MarkSeen(history.LatestMark);
+
+        Assert.Equal(new[] { "before" }, snapshot.Entries.Select(entry => entry.Content.Title));
+        Assert.Equal(0, snapshot.SeenMark);
+        Assert.Equal(HistoryJson.Write(history), HistoryJson.Write(history.Snapshot()));
+    }
+
+    [Fact]
     public void AToastWithoutAClickActionOrPopupCannotBeClicked()
     {
         var history = new History();

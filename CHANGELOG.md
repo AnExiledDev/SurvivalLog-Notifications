@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.3
+
+- Fixed: the phone was very laggy while the mod was installed. It opens and scrolls smoothly again, even with a long list of notices.
+- Less stutter while notices come in.
+- Saving the notice history no longer pauses the game.
+- New notices show up on the phone within a second.
+- Made for Survival Log 1.1.19611.
+
 ## 0.4.2
 
 - Less stutter while many notices come in: the phone list and the saved history are updated less often. Nothing is lost; the history is still saved when you leave or quit.

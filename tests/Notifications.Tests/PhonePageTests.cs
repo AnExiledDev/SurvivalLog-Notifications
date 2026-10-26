@@ -162,6 +162,79 @@ public class PhoneViewTests
     private static List<JsonElement> Rows(string json) => JsonDocument.Parse(json).RootElement.GetProperty("rows").EnumerateArray().ToList();
 }
 
+public class PhoneListTests
+{
+    private readonly History _history = new();
+    private readonly FakeWords _words = new();
+    private readonly PhoneList _list = new();
+
+    public PhoneListTests()
+    {
+        _history.Record(Make.Toast(1, "older"), new GameStamp(3, 7), Make.Wish());
+        _history.Record(Make.Toast(2, "newer"), null, null);
+    }
+
+    [Fact]
+    public void TheFirstSendIsTheWholeView() => Assert.Equal(PhoneView.Json(_history, _words, 4), _list.Json(_history, _words, 4));
+
+    [Fact]
+    public void AnUnchangedListGoesAsRowNumbersWithoutTheWords()
+    {
+        _list.Json(_history, _words, 4);
+
+        using var again = JsonDocument.Parse(_list.Json(_history, _words, 4));
+
+        Assert.False(again.RootElement.TryGetProperty("text", out _));
+        Assert.Equal(_history.Entries.Select(entry => entry.Seq), again.RootElement.GetProperty("rows").EnumerateArray().Select(row => row.GetInt64()));
+    }
+
+    [Fact]
+    public void ANewNoticeGoesWholeAndTheRestAsNumbers()
+    {
+        _list.Json(_history, _words, 4);
+        _history.Record(Make.Toast(3, "newest"), null, null);
+
+        using var sent = JsonDocument.Parse(_list.Json(_history, _words, 4));
+        var rows = sent.RootElement.GetProperty("rows").EnumerateArray().ToList();
+
+        Assert.Equal(3, rows.Count);
+        Assert.Equal("newest", rows[0].GetProperty("title").GetString());
+        Assert.All(rows.Skip(1), row => Assert.Equal(JsonValueKind.Number, row.ValueKind));
+    }
+
+    [Fact]
+    public void RowsThatWereReadGoWholeWithTheirNewState()
+    {
+        _list.Json(_history, _words, 4);
+        _history.MarkSeen(_history.LatestMark);
+
+        using var sent = JsonDocument.Parse(_list.Json(_history, _words, 4));
+        var rows = sent.RootElement.GetProperty("rows").EnumerateArray().ToList();
+
+        Assert.Equal(2, rows.Count);
+        Assert.All(rows, row => Assert.False(row.GetProperty("unread").GetBoolean()));
+    }
+
+    [Fact]
+    public void APageThatHasNothingGetsTheWholeViewAgain()
+    {
+        _list.Json(_history, _words, 4);
+        _list.Forget();
+
+        Assert.Equal(PhoneView.Json(_history, _words, 4), _list.Json(_history, _words, 4));
+    }
+
+    [Fact]
+    public void ALanguageChangeSendsTheRowsAndWordsAgainInTheNewLanguage()
+    {
+        var chinese = new FakeWords(true);
+
+        _list.Json(_history, _words, 4);
+
+        Assert.Equal(PhoneView.Json(_history, chinese, 4), _list.Json(_history, chinese, 4));
+    }
+}
+
 public class PhoneSyncTests
 {
     [Fact]
@@ -179,15 +252,37 @@ public class PhoneSyncTests
     }
 
     [Fact]
-    public void ABurstOfNoticesOverASecondAndAHalfGoesToThePageOnce()
+    public void ABurstOfNoticesWithinTheUpdateIntervalGoesToThePageOnce()
     {
         var sync = new PhoneSync();
 
         sync.Next(0, 1);
 
-        var steps = new[] { 10.0, 10.3, 10.6, 10.9, 11.2, 11.5 }.Select((now, i) => sync.Next(now, 2 + i)).ToList();
+        var steps = Enumerable.Range(0, 6).Select(i => sync.Next(10 + i * PhoneSync.UpdateSeconds * 0.15, 2 + i)).ToList();
 
         Assert.Single(steps, step => step == PhoneStep.Update);
+    }
+
+    [Fact]
+    public void ANewNoticeReachesThePageWithinASecond()
+    {
+        var sync = new PhoneSync();
+
+        sync.Next(0, 1);
+
+        Assert.Equal(PhoneStep.Update, sync.Next(1, 2));
+    }
+
+    [Fact]
+    public void APageThatAsksForTheWholeListGetsItWithTheNextUpdate()
+    {
+        var sync = new PhoneSync();
+
+        sync.Next(0, 1);
+        sync.Resend();
+
+        Assert.Equal(PhoneStep.Wait, sync.Next(PhoneSync.UpdateSeconds / 2, 1));
+        Assert.Equal(PhoneStep.Update, sync.Next(PhoneSync.UpdateSeconds, 1));
     }
 
     [Fact]
@@ -242,6 +337,7 @@ public class PageMessageTests
     [InlineData("read|7")]
     [InlineData("clear|9")]
     [InlineData("noscript")]
+    [InlineData("resync")]
     [InlineData("diag|frame gone")]
     public void ThePageScriptsMessagesAreUnderstood(string message) =>
         Assert.IsNotType<PageMessage.Unknown>(PageMessage.Parse(PageMessage.Prefix + message));

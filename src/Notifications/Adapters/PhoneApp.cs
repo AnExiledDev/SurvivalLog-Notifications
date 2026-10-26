@@ -15,6 +15,7 @@ internal sealed class PhoneApp
     private const string ScriptResource = "Notifications.notifications.js";
 
     private readonly PhoneSync _sync = new();
+    private readonly PhoneList _list = new();
     private readonly Ledger _ledger;
     private readonly NoticeDesk _desk;
     private readonly Action<string> _log;
@@ -37,6 +38,8 @@ internal sealed class PhoneApp
         switch (step)
         {
             case PhoneStep.Install:
+                // A page the script goes into has none of the list yet.
+                _list.Forget();
                 Run(PageCalls.Install(Script(), View()), now);
 
                 break;
@@ -75,6 +78,11 @@ internal sealed class PhoneApp
                 _sync.ScriptMissing();
 
                 break;
+            case PageMessage.Resync:
+                _list.Forget();
+                _sync.Resend();
+
+                break;
             case PageMessage.Diag diag:
                 LogOnce("diag:" + Before(diag.Text, ':'), "phone app: " + diag.Text);
 
@@ -86,7 +94,7 @@ internal sealed class PhoneApp
         }
     }
 
-    private string View() => PhoneView.Json(_ledger.Current, new GameWords(WebIcons.Shared(_log)), GameState.Stamp()?.Day);
+    private string View() => _list.Json(_ledger.Current, new GameWords(WebIcons.Shared(_log)), GameState.Stamp()?.Day);
 
     private void Run(string javaScript, double now)
     {

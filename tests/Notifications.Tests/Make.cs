@@ -35,13 +35,28 @@ internal sealed class FakeStore : IHistoryStore
 
     public StoredText Read(string fileName) => Files.TryGetValue(fileName, out var text) ? text : new StoredText.Missing();
 
-    public string? Write(string fileName, string text)
+    /// <summary>A write that fails after it was handed over, as one on the worker thread can; handed out once.</summary>
+    public string? LateFailure { get; set; }
+
+    public int Writes { get; private set; }
+
+    public string? Write(string fileName, HistorySnapshot snapshot)
     {
         if (WriteFailure != null) return WriteFailure;
 
-        Files[fileName] = new StoredText.Found(text);
+        Writes++;
+        Files[fileName] = new StoredText.Found(HistoryJson.Write(snapshot));
 
         return null;
+    }
+
+    public string? TakeFailure()
+    {
+        var failure = LateFailure;
+
+        LateFailure = null;
+
+        return failure;
     }
 
     public string? SetAside(string fileName)

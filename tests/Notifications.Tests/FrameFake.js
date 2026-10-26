@@ -100,6 +100,15 @@ FakeElement.prototype.removeChild = function (child) {
     return child;
 };
 
+var plainInsert = FakeElement.prototype.insertBefore;
+
+FakeElement.prototype.insertBefore = function (child, ref) {
+    plainInsert.call(this, child, ref);
+    report({ type: 'childList', target: this, addedNodes: [child] });
+
+    return child;
+};
+
 FakeElement.prototype.getElementsByTagName = function (tag) {
     return descendantsOf(this).filter(function (element) { return element.tagName === String(tag).toUpperCase(); });
 };

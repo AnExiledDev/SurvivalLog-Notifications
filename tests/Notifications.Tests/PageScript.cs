@@ -28,6 +28,16 @@ internal sealed class PageScript
 
     public void Update(History? history, bool isChinese = false) => Run(PageCalls.Set(PhoneView.Json(history, isChinese)));
 
+    /// <summary>The script, with the list as the plugin sends it: from a <see cref="PhoneList"/> the page is new to.</summary>
+    public void Install(History? history, PhoneList list)
+    {
+        list.Forget();
+        Run(PageCalls.Install(Resource("Notifications.notifications.js"), list.Json(history, new FakeWords(), null)));
+    }
+
+    /// <summary>An update as the plugin sends it: only what changed since the list's last send.</summary>
+    public void Send(History? history, PhoneList list) => Run(PageCalls.Set(list.Json(history, new FakeWords(), null)));
+
     public void Probe() => Run(PageCalls.Probe);
 
     /// <summary>Clicks the first element under the phone that a selector finds.</summary>

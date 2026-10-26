@@ -131,6 +131,10 @@
     var reported = {};
     // What the player has open in the list; it survives the plugin's redraws and the phone's.
     var ui = { filter: 'all', open: null, asking: false };
+    // The rows of the last list by number: the plugin sends a row the page already has as its number alone.
+    var known = {};
+    // Every phone page the app is on, with the app's own parts in it, so a redraw finds them without searching.
+    var phones = [];
 
     function kindRules() {
         var css = '';
@@ -179,21 +183,7 @@
         return href.slice(0, href.lastIndexOf('/') + 1) + path;
     }
 
-    // The PhoneSMS frames this page can reach. A frame from another origin throws on reading its location; it is not
-    // the phone, so it is passed over.
-    function phoneFrames() {
-        var found = [];
-        var frames = document.querySelectorAll('iframe');
-
-        for (var i = 0; i < frames.length; i++) {
-            var phone = phoneIn(frames[i]);
-
-            if (phone) found.push(phone);
-        }
-
-        return found;
-    }
-
+    // A frame from another origin throws on reading its location; it is not the phone, so it is passed over.
     function phoneIn(frame) {
         var win = frame.contentWindow;
 
@@ -208,8 +198,11 @@
         return null;
     }
 
+    // Everything the app puts on a page is marked, so the page's watcher can tell the app's changes from the game's.
     function element(doc, tag, className, text) {
         var made = doc.createElement(tag);
+
+        made.__sn = 1;
 
         if (className) made.className = className;
         if (text !== undefined) made.textContent = text;
@@ -221,6 +214,8 @@
         var svg = doc.createElementNS ? doc.createElementNS(SVG, 'svg') : doc.createElement('svg');
         var line = doc.createElementNS ? doc.createElementNS(SVG, 'path') : doc.createElement('path');
 
+        svg.__sn = 1;
+        line.__sn = 1;
         svg.setAttribute('viewBox', '0 0 24 24');
         if (className !== '') svg.setAttribute('class', className || 'sn-g');
         line.setAttribute('d', path);
@@ -263,109 +258,163 @@
         while (node.firstChild) node.removeChild(node.firstChild);
     }
 
-    function show(node, isShown) {
-        if (!node) return;
-
-        if (isShown) node.classList.remove('slnotify-hidden');
-        else node.classList.add('slnotify-hidden');
+    // The writes below change the page only when it does not already say so: every write is work for the browser, and
+    // a change to the phone's page wakes its watcher.
+    function setText(node, text) {
+        if (node.textContent !== text) node.textContent = text;
     }
 
-    // Puts back whatever of the app the phone's own redraws took away. Returns true when something was added.
+    function setClass(node, name, isOn) {
+        if (node.classList.contains(name) === isOn) return;
+
+        if (isOn) node.classList.add(name);
+        else node.classList.remove(name);
+    }
+
+    function show(node, isShown) {
+        if (node) setClass(node, 'slnotify-hidden', !isShown);
+    }
+
+    // Still on its page. A part the phone's own redraw took away is no longer.
+    function isLive(node) {
+        return !!node && node.isConnected === true;
+    }
+
+    // The app's part under a container of the game's: the one already there, or a new one. A part this page did not
+    // make for this phone is replaced.
+    function place(phone, containerSelector, ownSelector, build) {
+        var container = phone.doc.querySelector(containerSelector);
+
+        if (!container) return null;
+
+        var found = container.querySelector(ownSelector);
+
+        if (found && found.__snRefs && found.__snRefs.phone === phone) return found;
+
+        if (found && found.parentElement) found.parentElement.removeChild(found);
+
+        return container.appendChild(build(phone));
+    }
+
+    // Puts back whatever of the app the phone's own redraws took away. Only a missing part is searched for.
     function ensure(phone) {
         var doc = phone.doc;
-        var isChanged = false;
 
-        if (!doc.getElementById(STYLE_ID) && (doc.head || doc.body)) {
-            var style = element(doc, 'style');
+        if (!isLive(phone.style)) {
+            phone.style = doc.getElementById(STYLE_ID);
 
-            style.id = STYLE_ID;
-            style.textContent = CSS;
-            (doc.head || doc.body).appendChild(style);
-            isChanged = true;
+            if (!phone.style && (doc.head || doc.body)) {
+                phone.style = element(doc, 'style');
+                phone.style.id = STYLE_ID;
+                phone.style.textContent = CSS;
+                (doc.head || doc.body).appendChild(phone.style);
+            }
         }
 
-        var dock = doc.querySelector('.app-dock');
+        if (!isLive(phone.icon)) phone.icon = place(phone, '.app-dock', '.is-slnotify', buildIcon);
+        if (!isLive(phone.peek)) phone.peek = place(phone, '.view-home .app-grid', '.sn-peek', buildPeek);
+        if (!isLive(phone.view)) phone.view = place(phone, '.sms-panel', '.slnotify-view', buildView);
 
-        if (dock && !dock.querySelector('.is-slnotify')) {
-            dock.appendChild(buildIcon(doc));
-            isChanged = true;
+        if (!isLive(phone.appRoot)) {
+            phone.appRoot = doc.querySelector('.app-root');
+
+            if (phone.appRoot && !phone.appRoot.__slnotifyListening) {
+                phone.appRoot.__slnotifyListening = true;
+                // A click outside the phone's panel closes the phone; the list must not be open when it comes back.
+                listen(phone.appRoot, 'click', function () { closeList(phone); });
+            }
         }
-
-        var grid = doc.querySelector('.view-home .app-grid');
-
-        if (grid && !grid.querySelector('.sn-peek')) {
-            var peek = element(doc, 'div', 'sn-peek slnotify-hidden');
-
-            peek.__slnotifyRevision = -1;
-            grid.appendChild(peek);
-            isChanged = true;
-        }
-
-        var panel = doc.querySelector('.sms-panel');
-
-        if (panel && !panel.querySelector('.slnotify-view')) {
-            panel.appendChild(buildView(doc));
-            isChanged = true;
-        }
-
-        var appRoot = doc.querySelector('.app-root');
-
-        if (appRoot && !appRoot.__slnotifyListening) {
-            appRoot.__slnotifyListening = true;
-            // A click outside the phone's panel closes the phone; the list must not be open when it comes back.
-            listen(appRoot, 'click', function () { closeList(doc); });
-        }
-
-        return isChanged;
     }
 
-    function buildIcon(doc) {
+    function buildIcon(phone) {
+        var doc = phone.doc;
         var app = element(doc, 'div', 'app is-slnotify');
         var badge = element(doc, 'div', 'unread-dot slnotify-badge slnotify-hidden');
         var tile = element(doc, 'div', 'app-icon');
         var glyph = element(doc, 'div', 'icon-glyph');
+        var label = element(doc, 'div', 'app-label', view.label);
 
         glyph.appendChild(icon(doc, P.bell, ''));
         tile.appendChild(glyph);
         app.appendChild(badge);
         app.appendChild(tile);
-        app.appendChild(element(doc, 'div', 'app-label', view.label));
-        onClick(app, function () { openList(doc); });
+        app.appendChild(label);
+        app.__snRefs = { phone: phone, badge: badge, label: label };
+        onClick(app, function () { openList(phone); });
 
         return app;
     }
 
-    function buildView(doc) {
+    function buildPeek(phone) {
+        var peek = element(phone.doc, 'div', 'sn-peek slnotify-hidden');
+
+        peek.__snRefs = { phone: phone, shown: null, text: null };
+
+        return peek;
+    }
+
+    function buildView(phone) {
+        var doc = phone.doc;
         var panelView = element(doc, 'div', 'view slnotify-view');
         var head = element(doc, 'div', 'panel-head');
         var back = element(doc, 'div', 'back');
         var title = element(doc, 'div', 'title');
+        var name = element(doc, 'span', 't-name', view.label);
+        var fresh = element(doc, 'span', 'sn-new slnotify-hidden');
         var readAll = element(doc, 'div', 'sn-iconbtn sn-readall');
+        var day = element(doc, 'div', 'sn-day slnotify-hidden');
+        var filters = element(doc, 'div', 'sn-filters');
+        var scroll = element(doc, 'div', 'list-scroll sn-scroll');
+        var foot = element(doc, 'div', 'sn-foot');
+        var chips = {};
 
         back.appendChild(icon(doc, P.back, ''));
-        listen(back, 'click', function () { closeList(doc); });
-        title.appendChild(element(doc, 'span', 't-name', view.label));
-        title.appendChild(element(doc, 'span', 'sn-new slnotify-hidden'));
+        listen(back, 'click', function () { closeList(phone); });
+        title.appendChild(name);
+        title.appendChild(fresh);
         readAll.appendChild(icon(doc, P.checks));
         onClick(readAll, function () { markAllRead(); });
         head.appendChild(back);
         head.appendChild(title);
         head.appendChild(readAll);
-        head.appendChild(element(doc, 'div', 'sn-day slnotify-hidden'));
+        head.appendChild(day);
+
+        // The filter chips are made once; each draw changes only their words, counts and which is on.
+        FILTERS.forEach(function (filter) {
+            var chip = element(doc, 'div', 'sn-chip sn-f-' + filter);
+            var label = element(doc, 'span', '', '');
+            var count = element(doc, 'i', 'slnotify-hidden', '');
+
+            chip.appendChild(label);
+            chip.appendChild(count);
+            onClick(chip, function () {
+                ui.filter = filter;
+                changed();
+            });
+            filters.appendChild(chip);
+            chips[filter] = { chip: chip, label: label, count: count };
+        });
+
         panelView.appendChild(head);
-        panelView.appendChild(element(doc, 'div', 'sn-filters'));
-        panelView.appendChild(element(doc, 'div', 'list-scroll sn-scroll'));
-        panelView.appendChild(element(doc, 'div', 'sn-foot'));
-        panelView.__slnotifyRevision = -1;
+        panelView.appendChild(filters);
+        panelView.appendChild(scroll);
+        panelView.appendChild(foot);
+        panelView.__snRefs = {
+            phone: phone, name: name, fresh: fresh, readAll: readAll, day: day, filters: filters, chips: chips, scroll: scroll, foot: foot,
+            footKey: null, footText: null, nodes: {}, revision: -1, rowsRevision: -1
+        };
 
         return panelView;
     }
 
-    // Opening the list reads nothing: a notice counts as read once its row is opened or the player marks all read.
-    function openList(doc, seq) {
-        var panelView = doc.querySelector('.slnotify-view');
+    function isListOpen(phone) {
+        return !!phone.view && phone.view.classList.contains('is-active');
+    }
 
-        if (!panelView) return;
+    // Opening the list reads nothing: a notice counts as read once its row is opened or the player marks all read. Its
+    // rows are drawn only while it is open, so they are drawn here, before it shows.
+    function openList(phone, seq) {
+        if (!phone.view) return;
 
         if (seq !== undefined) {
             ui.filter = 'all';
@@ -373,19 +422,22 @@
             expand(seq, true);
         }
 
-        panelView.classList.add('is-active');
+        setClass(phone.view, 'is-active', true);
+        drawNow(phone);
     }
 
-    function closeList(doc) {
-        var panelView = doc.querySelector('.slnotify-view');
-
-        if (panelView) panelView.classList.remove('is-active');
+    function closeList(phone) {
+        if (phone.view) setClass(phone.view, 'is-active', false);
     }
 
-    // The plugin's next list says the same; until it comes, the page shows the change at once.
+    // The plugin's next list says the same; until it comes, the page shows the change by the next frame.
     function changed() {
         revision++;
-        check();
+
+        for (var i = phones.length - 1; i >= 0; i--) {
+            if (isCurrent(phones[i])) schedule(phones[i]);
+            else drop(i);
+        }
     }
 
     function findRow(seq) {
@@ -446,8 +498,8 @@
         return 'DAY {0}';
     }
 
-    function dayText(doc, day) {
-        return dayLabel(doc).replace('{0}', String(day));
+    function dayText(label, day) {
+        return label.replace('{0}', String(day));
     }
 
     function hourText(row) {
@@ -513,8 +565,9 @@
         return chip;
     }
 
-    function buildRow(doc, row) {
-        var isOpen = ui.open === row.seq;
+    // A row's element remembers what it was drawn from, so the next draw keeps it when nothing it shows has changed.
+    function buildRow(phone, row, isOpen) {
+        var doc = phone.doc;
         var line = element(doc, 'div', 'list-row slnotify-row');
         var main = element(doc, 'div', 'sn-main');
         var chev = element(doc, 'div', 'sn-chev');
@@ -553,18 +606,22 @@
             main.appendChild(items);
         }
 
-        if (isOpen) main.appendChild(actions(doc, row));
+        if (isOpen) main.appendChild(actions(phone, row));
 
         chev.appendChild(icon(doc, P.chev));
         line.appendChild(tile(doc, row));
         line.appendChild(main);
         line.appendChild(chev);
+        line.__snRow = row;
+        line.__snOpen = isOpen;
+        line.__snText = view.text;
         listen(line, 'click', function () { expand(row.seq, false); });
 
         return line;
     }
 
-    function actions(doc, row) {
+    function actions(phone, row) {
+        var doc = phone.doc;
         var acts = element(doc, 'div', 'sn-acts');
 
         if (row.popup || row.click) {
@@ -572,7 +629,7 @@
 
             open.appendChild(icon(doc, P.open));
             open.appendChild(element(doc, 'span', '', word(row.popup ? 'open' : 'openPlain')));
-            onClick(open, function () { openRow(doc, row.seq); });
+            onClick(open, function () { openRow(phone, row.seq); });
             acts.appendChild(open);
 
             if (row.popup) acts.appendChild(element(doc, 'span', 'sn-hint', word('hintPopup')));
@@ -584,10 +641,10 @@
     }
 
     // A row opens its popup again: the list and the phone close first, so the popup is not drawn under the phone.
-    function openRow(doc, seq) {
-        closeList(doc);
+    function openRow(phone, seq) {
+        closeList(phone);
 
-        var appRoot = doc.querySelector('.app-root');
+        var appRoot = isLive(phone.appRoot) ? phone.appRoot : phone.doc.querySelector('.app-root');
 
         if (appRoot && appRoot.click) appRoot.click();
 
@@ -604,41 +661,28 @@
 
         if (hint) empty.appendChild(element(doc, 'div', 'sn-eh', hint));
 
+        empty.__snText = view.text;
+
         return empty;
     }
 
-    function drawHead(doc, panelView) {
-        var title = panelView.querySelector('.t-name');
-        var fresh = panelView.querySelector('.sn-new');
-        var readAll = panelView.querySelector('.sn-readall');
-        var day = panelView.querySelector('.sn-day');
+    function drawHead(refs, label) {
+        var tip = word('markRead');
+        var hasDay = typeof view.today === 'number';
 
-        if (title) title.textContent = view.label;
+        setText(refs.name, view.label);
+        setText(refs.fresh, view.unread + ' ' + word('new'));
+        show(refs.fresh, view.unread > 0);
 
-        if (fresh) {
-            fresh.textContent = view.unread + ' ' + word('new');
-            show(fresh, view.unread > 0);
-        }
+        if (refs.readAll.getAttribute('data-tip') !== tip) refs.readAll.setAttribute('data-tip', tip);
 
-        if (readAll) {
-            readAll.setAttribute('data-tip', word('markRead'));
-            if (view.unread > 0) readAll.classList.remove('sn-off');
-            else readAll.classList.add('sn-off');
-        }
-
-        if (day) {
-            day.textContent = typeof view.today === 'number' ? dayText(doc, view.today) : '';
-            show(day, typeof view.today === 'number');
-        }
+        setClass(refs.readAll, 'sn-off', !(view.unread > 0));
+        setText(refs.day, hasDay ? dayText(label, view.today) : '');
+        show(refs.day, hasDay);
     }
 
-    function drawFilters(doc, panelView) {
-        var filters = panelView.querySelector('.sn-filters');
-
-        if (!filters) return;
-
-        clear(filters);
-        show(filters, view.rows.length > 0);
+    function drawFilters(refs) {
+        show(refs.filters, view.rows.length > 0);
 
         var counts = { all: view.rows.length, unread: 0, popup: 0, msg: 0, mod: 0 };
 
@@ -647,66 +691,119 @@
             if (counts[view.rows[i].cat] !== undefined) counts[view.rows[i].cat]++;
         }
 
-        FILTERS.forEach(function (filter) {
-            var chip = element(doc, 'div', 'sn-chip sn-f-' + filter + (ui.filter === filter ? ' sn-on' : ''), word(filter));
+        for (var f = 0; f < FILTERS.length; f++) {
+            var filter = FILTERS[f];
+            var chip = refs.chips[filter];
 
-            if (counts[filter]) chip.appendChild(element(doc, 'i', '', String(counts[filter])));
-
-            onClick(chip, function () {
-                ui.filter = filter;
-                changed();
-            });
-            filters.appendChild(chip);
-        });
+            setClass(chip.chip, 'sn-on', ui.filter === filter);
+            setText(chip.label, word(filter));
+            setText(chip.count, counts[filter] ? String(counts[filter]) : '');
+            show(chip.count, counts[filter] > 0);
+        }
     }
 
-    function drawRows(doc, panelView) {
-        var scroll = panelView.querySelector('.sn-scroll');
+    // A node kept from the last draw, under its key, when it still shows the same; else a new one.
+    function keep(old, nodes, key, isSame, make) {
+        var node = old[key];
 
-        if (!scroll) return;
+        if (!node || !isSame(node)) node = make();
 
-        clear(scroll);
+        nodes[key] = node;
+
+        return node;
+    }
+
+    function sameText(node) {
+        return node.__snText === view.text;
+    }
+
+    // Draws the list by keeping every row, day line and empty notice whose content is unchanged and moving them into
+    // order: a new notice adds one row, a read one changes one class, and nothing else on the page is touched.
+    function drawRows(phone, refs, label) {
+        var doc = phone.doc;
+        var scroll = refs.scroll;
+        var old = refs.nodes;
+        var nodes = {};
+        var wanted = [];
 
         if (view.rows.length === 0) {
-            scroll.appendChild(emptyBlock(doc, word('emptyTitle'), word('emptyHint')));
+            wanted.push(keep(old, nodes, 'empty', sameText, function () { return emptyBlock(doc, word('emptyTitle'), word('emptyHint')); }));
+        } else {
+            var day = null;
+            var days = {};
 
-            return;
-        }
+            for (var i = 0; i < view.rows.length; i++) {
+                var row = view.rows[i];
 
-        var day = null;
-        var any = false;
+                if (!isShown(row, ui.filter)) continue;
 
-        for (var i = 0; i < view.rows.length; i++) {
-            var row = view.rows[i];
+                if (typeof row.day === 'number' && row.day !== day) {
+                    day = row.day;
 
-            if (!isShown(row, ui.filter)) continue;
+                    var dayKey = 'd' + day;
+                    var text = (day === view.today ? word('today') + ' ' : '') + dayText(label, day);
 
-            any = true;
+                    days[dayKey] = (days[dayKey] || 0) + 1;
+                    wanted.push(keep(old, nodes, dayKey + '#' + days[dayKey], function (node) { return node.__snDay === text; }, function () {
+                        var divider = element(doc, 'div', 'sn-divider');
 
-            if (typeof row.day === 'number' && row.day !== day) {
-                var divider = element(doc, 'div', 'sn-divider');
+                        if (day === view.today) divider.appendChild(element(doc, 'b', '', word('today')));
 
-                day = row.day;
+                        divider.appendChild(element(doc, 'span', '', dayText(label, day)));
+                        divider.__snDay = text;
 
-                if (day === view.today) divider.appendChild(element(doc, 'b', '', word('today')));
+                        return divider;
+                    }));
+                }
 
-                divider.appendChild(element(doc, 'span', '', dayText(doc, day)));
-                scroll.appendChild(divider);
+                var key = 'r' + row.seq;
+                var isOpen = ui.open === row.seq;
+                var line = old[key];
+
+                if (!line || line.__snRow !== row || line.__snOpen !== isOpen || line.__snText !== view.text) line = buildRow(phone, row, isOpen);
+                else setClass(line, 'is-unread', !!row.unread);
+
+                nodes[key] = line;
+                wanted.push(line);
             }
 
-            scroll.appendChild(buildRow(doc, row));
+            if (wanted.length === 0) wanted.push(keep(old, nodes, 'none', sameText, function () { return emptyBlock(doc, word('emptyFilter'), ''); }));
         }
 
-        if (!any) scroll.appendChild(emptyBlock(doc, word('emptyFilter'), ''));
+        for (var gone in old) {
+            if (nodes[gone] !== old[gone] && old[gone].parentElement === scroll) scroll.removeChild(old[gone]);
+        }
+
+        var at = scroll.firstChild;
+
+        for (var w = 0; w < wanted.length; w++) {
+            if (wanted[w] === at) at = at.nextSibling;
+            else scroll.insertBefore(wanted[w], at);
+        }
+
+        while (at) {
+            var next = at.nextSibling;
+
+            scroll.removeChild(at);
+            at = next;
+        }
+
+        refs.nodes = nodes;
     }
 
-    function drawFoot(doc, panelView) {
-        var foot = panelView.querySelector('.sn-foot');
+    // The foot is drawn again only when what it says changed.
+    function drawFoot(phone, refs) {
+        var doc = phone.doc;
+        var foot = refs.foot;
+        var key = (ui.asking ? 'ask' : 'kept') + '|' + (view.kept || 0) + '|' + (view.cap || 0);
 
-        if (!foot) return;
-
-        clear(foot);
         show(foot, view.rows.length > 0);
+
+        if (refs.footKey === key && refs.footText === view.text) return;
+
+        refs.footKey = key;
+        refs.footText = view.text;
+        clear(foot);
 
         if (ui.asking) {
             var yes = element(doc, 'div', 'sn-btn sn-yes', word('yes'));
@@ -736,26 +833,32 @@
         foot.appendChild(wipe);
     }
 
-    // The newest unread notices on the phone's home screen, in the space the game leaves empty above the dock.
-    function drawPeek(doc) {
-        var grid = doc.querySelector('.view-home .app-grid');
-        var peek = grid && grid.querySelector('.sn-peek');
+    // The newest unread notices on the phone's home screen, in the space the game leaves empty above the dock. Drawn
+    // again only when those notices or the words changed.
+    function drawPeek(phone) {
+        var doc = phone.doc;
+        var peek = phone.peek;
 
-        if (!peek || peek.__slnotifyRevision === revision) return;
+        if (!peek) return;
 
-        peek.__slnotifyRevision = revision;
-        clear(peek);
-
+        var refs = peek.__snRefs;
         var unread = [];
 
         for (var i = 0; i < view.rows.length && unread.length < PEEK; i++) {
             if (view.rows[i].unread) unread.push(view.rows[i]);
         }
 
+        var grid = peek.parentElement;
+
+        if (grid) setClass(grid, 'slnotify-peeking', unread.length > 0);
+
         show(peek, unread.length > 0);
 
-        if (unread.length > 0) grid.classList.add('slnotify-peeking');
-        else grid.classList.remove('slnotify-peeking');
+        if (refs.text === view.text && sameRows(refs.shown, unread)) return;
+
+        refs.shown = unread;
+        refs.text = view.text;
+        clear(peek);
 
         if (unread.length === 0) return;
 
@@ -763,7 +866,7 @@
         var seeAll = element(doc, 'span', 'sn-seeall', word('seeAll'));
 
         head.appendChild(element(doc, 'span', '', word('recent')));
-        onClick(seeAll, function () { openList(doc); });
+        onClick(seeAll, function () { openList(phone); });
         head.appendChild(seeAll);
         peek.appendChild(head);
 
@@ -779,83 +882,230 @@
 
             card.appendChild(tile(doc, row));
             card.appendChild(main);
-            onClick(card, function () { openList(doc, row.seq); });
+            onClick(card, function () { openList(phone, row.seq); });
             peek.appendChild(card);
         });
     }
 
-    function drawBadge(doc) {
-        var badge = doc.querySelector('.is-slnotify .unread-dot');
-        var label = doc.querySelector('.is-slnotify .app-label');
+    function sameRows(was, now) {
+        if (!was || was.length !== now.length) return false;
 
-        if (label) label.textContent = view.label;
-        if (!badge) return;
+        for (var i = 0; i < now.length; i++) {
+            if (was[i] !== now[i]) return false;
+        }
 
-        badge.textContent = view.unread > 99 ? '99+' : String(view.unread || 0);
-        show(badge, view.unread > 0);
+        return true;
     }
 
-    function draw(doc) {
-        drawBadge(doc);
-        drawPeek(doc);
+    function drawBadge(phone) {
+        if (!phone.icon) return;
 
-        var panelView = doc.querySelector('.slnotify-view');
+        var refs = phone.icon.__snRefs;
 
-        if (!panelView || panelView.__slnotifyRevision === revision) return;
-
-        panelView.__slnotifyRevision = revision;
-        drawHead(doc, panelView);
-        drawFilters(doc, panelView);
-        drawRows(doc, panelView);
-        drawFoot(doc, panelView);
+        setText(refs.label, view.label);
+        setText(refs.badge, view.unread > 99 ? '99+' : String(view.unread || 0));
+        show(refs.badge, view.unread > 0);
     }
 
-    // The phone page redraws its dock and panel with Vue; an observer on the page puts the app back the moment a
-    // redraw drops it, or the game first builds it, rather than at the next check.
-    function watch(phone) {
-        if (phone.doc.__slnotifyObserved) return;
+    function draw(phone) {
+        drawBadge(phone);
+        drawPeek(phone);
 
-        phone.doc.__slnotifyObserved = true;
+        if (!phone.view) return;
 
-        var Observer = phone.win.MutationObserver || window.MutationObserver;
+        var refs = phone.view.__snRefs;
+        var isHeadDue = refs.revision !== revision;
+        var isRowsDue = refs.rowsRevision !== revision && isListOpen(phone);
 
-        if (!Observer) return;
+        if (!isHeadDue && !isRowsDue) return;
 
-        new Observer(function () {
-            try {
-                if (ensure(phone)) draw(phone.doc);
-            } catch (e) {
-                report('redraw failed: ' + e);
-            }
-        }).observe(phone.doc, { childList: true, subtree: true });
+        var label = dayLabel(phone.doc);
+
+        if (isHeadDue) {
+            refs.revision = revision;
+            drawHead(refs, label);
+            drawFilters(refs);
+            drawFoot(phone, refs);
+        }
+
+        if (isRowsDue) {
+            refs.rowsRevision = revision;
+            drawRows(phone, refs, label);
+        }
     }
 
-    function update(phone) {
+    function drawNow(phone) {
         try {
-            ensure(phone);
-            watch(phone);
-            draw(phone.doc);
+            draw(phone);
         } catch (e) {
             report('phone update failed: ' + e);
         }
     }
 
-    // The game builds a new phone page every time the phone opens and shows it two frames after the page starts, long
-    // before the next check. So a phone page is watched from the moment its frame appears, and the app goes in while
-    // the game builds the page. A new frame first holds an empty page; the phone page replaces it a moment later, so
-    // the frame is looked at each frame until it is there, for about two seconds at most.
-    function chase(frame, framesLeft) {
-        var phone = phoneIn(frame);
+    // One pass puts back what is missing and draws what changed.
+    function pass(phone) {
+        phone.pending = false;
 
-        if (phone) {
-            update(phone);
+        if (phone.isDropped) return;
+
+        try {
+            ensure(phone);
+            draw(phone);
+        } catch (e) {
+            report('phone update failed: ' + e);
+        }
+    }
+
+    // However many changes come in a frame, a phone gets one pass, just before the frame is drawn.
+    function schedule(phone) {
+        if (phone.pending) return;
+
+        phone.pending = true;
+
+        if (typeof requestAnimationFrame !== 'function') {
+            pass(phone);
 
             return;
         }
 
-        if (framesLeft <= 0 || typeof requestAnimationFrame === 'undefined') return;
+        requestAnimationFrame(function () { pass(phone); });
+    }
 
-        requestAnimationFrame(function () { chase(frame, framesLeft - 1); });
+    // A change on the phone's page needs a pass only when a part of the app is gone, or while a part is still missing
+    // and the game adds something that might be where it goes. The app's own changes never need one. Nothing here
+    // searches the page.
+    function needsPass(phone, records) {
+        if (phone.pending || phone.isDropped) return false;
+
+        var isMissing = false;
+        var parts = phone.parts;
+
+        for (var p = 0; p < parts.length; p++) {
+            var part = phone[parts[p]];
+
+            if (!part) isMissing = true;
+            else if (part.isConnected !== true) return true;
+        }
+
+        if (!isMissing) return false;
+
+        if (!records || records.length === 0) return true;
+
+        for (var i = 0; i < records.length; i++) {
+            var added = records[i].addedNodes;
+
+            for (var j = 0; added && j < added.length; j++) {
+                if (added[j].nodeType === 1 && !added[j].__sn) return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The phone page redraws its dock and panel with Vue; an observer on the page puts the app back the frame a redraw
+    // drops it, or the game first builds it, rather than at the next check.
+    function watch(phone) {
+        var Observer = phone.win.MutationObserver || window.MutationObserver;
+
+        if (!Observer) return;
+
+        phone.observer = new Observer(function (records) {
+            try {
+                if (needsPass(phone, records)) schedule(phone);
+            } catch (e) {
+                report('redraw failed: ' + e);
+            }
+        });
+        phone.observer.observe(phone.doc, { childList: true, subtree: true });
+        phone.watched = true;
+    }
+
+    // Still the page in its frame: a frame that was removed or loaded a new page drops the phone it held.
+    function isCurrent(phone) {
+        try {
+            return phone.frame.isConnected !== false && phone.frame.contentWindow === phone.win && phone.win.document === phone.doc;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function drop(at) {
+        var phone = phones[at];
+
+        phones.splice(at, 1);
+        phone.isDropped = true;
+
+        try {
+            if (phone.observer && phone.observer.disconnect) phone.observer.disconnect();
+            if (phone.doc.__slnotifyPhone === phone) phone.doc.__slnotifyPhone = null;
+        } catch (e) {
+            // The page is already gone.
+        }
+    }
+
+    function prune() {
+        for (var i = phones.length - 1; i >= 0; i--) {
+            if (!isCurrent(phones[i])) drop(i);
+        }
+    }
+
+    // The phone for a page found in a frame: the one already kept for it, or a new one, drawn at once and watched.
+    function track(found) {
+        var had = found.doc.__slnotifyPhone;
+
+        if (had && !had.isDropped) return had;
+
+        var phone = {
+            frame: found.frame, win: found.win, doc: found.doc, pending: false, watched: false, isDropped: false,
+            parts: ['style', 'icon', 'peek', 'view', 'appRoot'], style: null, icon: null, peek: null, view: null, appRoot: null, observer: null
+        };
+
+        found.doc.__slnotifyPhone = phone;
+        found.frame.__slnotifyPhone = phone;
+        phones.push(phone);
+        pass(phone);
+        watch(phone);
+
+        return phone;
+    }
+
+    function adopt(frame) {
+        var found = phoneIn(frame);
+
+        if (!found) return false;
+
+        track(found);
+
+        return true;
+    }
+
+    // The game builds a new phone page every time the phone opens and shows it two frames after the page starts, long
+    // before the next check. So a phone page is watched from the moment its frame appears, and the app goes in while
+    // the game builds the page. A new frame first holds an empty page; the phone page replaces it a moment later, so
+    // the frame is looked at each frame until it is there, for about two seconds at most. A frame is chased once at a
+    // time, however often it is pointed at the phone.
+    function chase(frame) {
+        if (adopt(frame)) return;
+
+        frame.__slnotifyChaseLeft = CHASE_FRAMES;
+
+        if (frame.__slnotifyChasing || typeof requestAnimationFrame !== 'function') return;
+
+        frame.__slnotifyChasing = true;
+
+        var step = function () {
+            frame.__slnotifyChaseLeft--;
+
+            if (adopt(frame) || frame.__slnotifyChaseLeft <= 0) {
+                frame.__slnotifyChasing = false;
+
+                return;
+            }
+
+            requestAnimationFrame(step);
+        };
+
+        requestAnimationFrame(step);
     }
 
     function onFrame(frame) {
@@ -863,10 +1113,10 @@
 
         if (!frame.__slnotifyFrame) {
             frame.__slnotifyFrame = true;
-            frame.addEventListener('load', function () { chase(frame, CHASE_FRAMES); });
+            frame.addEventListener('load', function () { chase(frame); });
         }
 
-        chase(frame, CHASE_FRAMES);
+        chase(frame);
     }
 
     // Every game page is an iframe in this document: a new one, or one sent to a new address, is looked at at once.
@@ -893,6 +1143,8 @@
                         continue;
                     }
 
+                    if (!node.firstChild) continue;
+
                     var inner = node.getElementsByTagName('iframe');
 
                     for (var k = 0; k < inner.length; k++) onFrame(inner[k]);
@@ -901,25 +1153,69 @@
         }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
     }
 
+    // The fallback for what the watchers miss: a phone page nobody found yet, or one whose page cannot be watched. A
+    // phone that is watched is passed over without a look at its page.
     function check() {
-        var phones = phoneFrames();
+        prune();
 
-        for (var i = 0; i < phones.length; i++) update(phones[i]);
+        var frames = document.querySelectorAll('iframe');
+
+        for (var i = 0; i < frames.length; i++) {
+            var kept = frames[i].__slnotifyPhone;
+
+            if (kept && kept.watched && !kept.isDropped && isCurrent(kept)) continue;
+
+            var found = phoneIn(frames[i]);
+
+            if (!found) continue;
+
+            var had = found.doc.__slnotifyPhone;
+            var phone = track(found);
+
+            if (had === phone && !phone.watched) pass(phone);
+        }
     }
 
-    window.__slnotify = {
-        set: function (next) {
-            if (!next || !next.rows) return;
+    // A list from the plugin. A row the page already has comes as its number; a number the page does not know means
+    // the two disagree, so the page asks for the whole list and keeps what it shows until then.
+    function set(next) {
+        if (!next || !next.rows) return;
 
-            view = next;
+        var rows = [];
+        var byNumber = {};
 
-            if (ui.open !== null && !findRow(ui.open)) ui.open = null;
-            if (view.rows.length === 0) ui.asking = false;
+        for (var i = 0; i < next.rows.length; i++) {
+            var row = next.rows[i];
 
-            changed();
-        },
-        check: check
-    };
+            if (typeof row === 'number') {
+                row = known[row];
+
+                if (!row) {
+                    known = {};
+                    post('resync');
+
+                    return;
+                }
+            }
+
+            rows.push(row);
+            byNumber[row.seq] = row;
+        }
+
+        known = byNumber;
+        next.rows = rows;
+
+        if (!next.text) next.text = view.text;
+
+        view = next;
+
+        if (ui.open !== null && !findRow(ui.open)) ui.open = null;
+        if (view.rows.length === 0) ui.asking = false;
+
+        changed();
+    }
+
+    window.__slnotify = { set: set, check: check };
 
     watchFrames();
     setInterval(check, CHECK_MS);

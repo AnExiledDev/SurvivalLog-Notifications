@@ -14,14 +14,18 @@ namespace Notifications;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.4.2";
+    private const string Version = "0.4.3";
+
+    /// <summary>How long quitting waits for the history to reach the disk.</summary>
+    private static readonly System.TimeSpan QuitWait = System.TimeSpan.FromSeconds(2);
 
     public override void Load()
     {
         var entries = BindSwitches();
         var switches = Read(entries);
         var log = new NoteLog(Log, Path.Combine(Paths.BepInExRootPath, "notifications.log"));
-        var ledger = new Ledger(new HistoryFiles(Path.Combine(Paths.ConfigPath, "notifications")), log.Write);
+        var files = new HistoryFiles(Path.Combine(Paths.ConfigPath, "notifications"));
+        var ledger = new Ledger(files, log.Write);
         var bridge = new ToastBridge(ledger, log.Write);
         var closer = new PopupCloser(log.Write);
         var desk = new NoticeDesk(switches, ledger, bridge, closer, log.Write);
@@ -52,6 +56,7 @@ public sealed class Plugin : BasePlugin
         NoteTicker.Ledger = ledger;
         NoteTicker.Phone = new PhoneApp(ledger, desk, log.Write);
         NoteTicker.Closer = closer;
+        NoteTicker.Settle = () => files.Settle(QuitWait);
 
         AddComponent<NoteTicker>();
     }

@@ -45,6 +45,23 @@ var FakeElement = class {
 
     get firstChild() { return this.children[0] || null; }
 
+    get nextSibling() {
+        if (!this.parentElement) return null;
+
+        var siblings = this.parentElement.children;
+
+        return siblings[siblings.indexOf(this) + 1] || null;
+    }
+
+    // On a page: the element's top ancestor is a document's root element.
+    get isConnected() {
+        var top = this;
+
+        while (top.parentElement) top = top.parentElement;
+
+        return !!top.isDocumentRoot;
+    }
+
     setAttribute(name, value) { this.attrs[name] = String(value); }
 
     getAttribute(name) { return Object.prototype.hasOwnProperty.call(this.attrs, name) ? this.attrs[name] : null; }
@@ -65,6 +82,26 @@ var FakeElement = class {
 
         this.children.splice(at, 1);
         child.parentElement = null;
+
+        return child;
+    }
+
+    // Moves the child before ref, or to the end when ref is null, out of wherever it was.
+    insertBefore(child, ref) {
+        if (child.parentElement) {
+            var from = child.parentElement.children;
+
+            from.splice(from.indexOf(child), 1);
+        }
+
+        var at = ref ? this.children.indexOf(ref) : -1;
+
+        if (ref && at < 0) throw new Error('insertBefore: the reference is not a child of this element');
+
+        child.parentElement = this;
+
+        if (at < 0) this.children.push(child);
+        else this.children.splice(at, 0, child);
 
         return child;
     }
@@ -152,6 +189,7 @@ function fakeDocument() {
         querySelectorAll: function (selector) { return doc.documentElement.querySelectorAll(selector); }
     };
 
+    doc.documentElement.isDocumentRoot = true;
     doc.head = doc.documentElement.appendChild(new FakeElement('head'));
     doc.body = doc.documentElement.appendChild(new FakeElement('body'));
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -66,20 +67,7 @@ public static class PhoneView
 
         using (var json = new Utf8JsonWriter(buffer))
         {
-            json.WriteStartObject();
-            json.WriteString("label", words.IsChinese ? "通知" : "Notifications");
-            json.WriteNumber("unread", history?.UnreadCount ?? 0);
-            json.WriteNumber("mark", history?.LatestMark ?? 0);
-            json.WriteNumber("kept", history?.Entries.Count ?? 0);
-            json.WriteNumber("cap", History.Cap);
-
-            if (today is { } day) json.WriteNumber("today", day);
-
-            json.WriteStartObject("text");
-
-            foreach (var (key, english, chinese) in Words) json.WriteString(key, words.IsChinese ? chinese : english);
-
-            json.WriteEndObject();
+            WriteHeader(json, history, words, today, true);
             json.WriteStartArray("rows");
 
             if (history != null)
@@ -115,7 +103,28 @@ public static class PhoneView
 
     private static bool IsGame(HistoryEntry entry) => entry.Content.Source == NoteTexts.Source(false) || entry.Content.Source == NoteTexts.Source(true);
 
-    private static void WriteRow(Utf8JsonWriter json, HistoryEntry entry, bool isUnread, IViewWords words)
+    /// <summary>Opens the view object and writes everything before its rows; the page's words only when asked.</summary>
+    internal static void WriteHeader(Utf8JsonWriter json, History? history, IViewWords words, int? today, bool withText)
+    {
+        json.WriteStartObject();
+        json.WriteString("label", words.IsChinese ? "通知" : "Notifications");
+        json.WriteNumber("unread", history?.UnreadCount ?? 0);
+        json.WriteNumber("mark", history?.LatestMark ?? 0);
+        json.WriteNumber("kept", history?.Entries.Count ?? 0);
+        json.WriteNumber("cap", History.Cap);
+
+        if (today is { } day) json.WriteNumber("today", day);
+
+        if (!withText) return;
+
+        json.WriteStartObject("text");
+
+        foreach (var (key, english, chinese) in Words) json.WriteString(key, words.IsChinese ? chinese : english);
+
+        json.WriteEndObject();
+    }
+
+    internal static void WriteRow(Utf8JsonWriter json, HistoryEntry entry, bool isUnread, IViewWords words)
     {
         json.WriteStartObject();
         json.WriteNumber("seq", entry.Seq);
@@ -221,6 +230,124 @@ public static class PhoneView
     }
 }
 
+/// <summary>
+/// The view as the page is sent it after the first time: what changed since the last one it was sent. A row the page
+/// already has, unchanged, goes as its number alone, and the page's words go only when it has none or their language
+/// changed. Each row's JSON is kept until the row changes, so a row is written once, not on every send. Read by the
+/// page exactly as <see cref="PhoneView.Json(History?, IViewWords, int?)"/> is, once its numbers are looked up.
+/// </summary>
+public sealed class PhoneList
+{
+    private readonly Dictionary<long, Row> _rows = new();
+    private readonly List<long> _gone = new();
+    private readonly MemoryStream _buffer = new();
+    private readonly MemoryStream _rowBuffer = new();
+    private readonly Utf8JsonWriter _json;
+    private readonly Utf8JsonWriter _rowJson;
+    private bool? _rowsAreChinese;
+    private bool? _pageWordsAreChinese;
+    private int _send;
+
+    public PhoneList()
+    {
+        _json = new Utf8JsonWriter(_buffer);
+        _rowJson = new Utf8JsonWriter(_rowBuffer);
+    }
+
+    public string Json(History? history, IViewWords words, int? today)
+    {
+        if (_rowsAreChinese != words.IsChinese)
+        {
+            _rows.Clear();
+            _rowsAreChinese = words.IsChinese;
+        }
+
+        _send++;
+        _buffer.SetLength(0);
+        _json.Reset(_buffer);
+        PhoneView.WriteHeader(_json, history, words, today, _pageWordsAreChinese != words.IsChinese);
+        _pageWordsAreChinese = words.IsChinese;
+        _json.WriteStartArray("rows");
+
+        if (history != null)
+        {
+            foreach (var entry in history.Entries) WriteRow(entry, history.IsUnread(entry), words);
+        }
+
+        _json.WriteEndArray();
+        _json.WriteEndObject();
+        _json.Flush();
+        Evict();
+
+        return Encoding.UTF8.GetString(_buffer.GetBuffer(), 0, (int)_buffer.Length);
+    }
+
+    /// <summary>The page has nothing of what it was sent (it is new, or asked for everything): the next send is whole.</summary>
+    public void Forget()
+    {
+        foreach (var row in _rows.Values) row.IsOnPage = false;
+
+        _pageWordsAreChinese = null;
+    }
+
+    private void WriteRow(HistoryEntry entry, bool isUnread, IViewWords words)
+    {
+        // An entry is replaced, never changed, so the same object is the same row.
+        if (!_rows.TryGetValue(entry.Seq, out var row) || !ReferenceEquals(row.Entry, entry) || row.IsUnread != isUnread)
+        {
+            row ??= _rows[entry.Seq] = new Row();
+            row.Entry = entry;
+            row.IsUnread = isUnread;
+            row.Json = Render(entry, isUnread, words);
+            row.IsOnPage = false;
+        }
+
+        row.Send = _send;
+
+        if (row.IsOnPage)
+        {
+            _json.WriteNumberValue(entry.Seq);
+
+            return;
+        }
+
+        _json.WriteRawValue(row.Json, skipInputValidation: true);
+        row.IsOnPage = true;
+    }
+
+    private byte[] Render(HistoryEntry entry, bool isUnread, IViewWords words)
+    {
+        _rowBuffer.SetLength(0);
+        _rowJson.Reset(_rowBuffer);
+        PhoneView.WriteRow(_rowJson, entry, isUnread, words);
+        _rowJson.Flush();
+
+        return _rowBuffer.ToArray();
+    }
+
+    /// <summary>Rows gone from the history are not kept.</summary>
+    private void Evict()
+    {
+        _gone.Clear();
+
+        foreach (var (seq, row) in _rows)
+        {
+            if (row.Send != _send) _gone.Add(seq);
+        }
+
+        foreach (var seq in _gone) _rows.Remove(seq);
+    }
+
+    private sealed class Row
+    {
+        public HistoryEntry? Entry;
+        public bool IsUnread;
+        public byte[] Json = Array.Empty<byte>();
+        public bool IsOnPage;
+        public int Send;
+    }
+}
+
 /// <summary>The JavaScript the plugin runs in the game's web view, which runs it in the root page.</summary>
 public static class PageCalls
 {
@@ -253,8 +380,8 @@ public enum PhoneStep
 public sealed class PhoneSync
 {
     public const double ProbeSeconds = 2;
-    /// <summary>A full history is up to about 140 KB, so a burst of notices goes over as one update, not one per notice.</summary>
-    public const double UpdateSeconds = 2;
+    /// <summary>A burst of notices goes over as one update, not one per notice, and a new notice still shows within a second.</summary>
+    public const double UpdateSeconds = 1;
 
     private bool _needsInstall = true;
     private long _sentRevision = long.MinValue;
@@ -276,6 +403,9 @@ public sealed class PhoneSync
 
     /// <summary>The page said the script is missing: put it back with the next step.</summary>
     public void ScriptMissing() => _needsInstall = true;
+
+    /// <summary>The page asked for the whole list: send it with the next update, even if nothing changed.</summary>
+    public void Resend() => _sentRevision = long.MinValue;
 
     /// <summary>A step could not be sent, as there was no web view: try again after a probe's wait.</summary>
     public void NotSent(double now)
@@ -318,6 +448,9 @@ public abstract record PageMessage
 
     public sealed record NoScript : PageMessage;
 
+    /// <summary>The page was sent a row by a number it does not know, and wants the whole list.</summary>
+    public sealed record Resync : PageMessage;
+
     /// <summary>Something the script wants in the log.</summary>
     public sealed record Diag(string Text) : PageMessage;
 
@@ -339,6 +472,7 @@ public abstract record PageMessage
             "read" when long.TryParse(argument, NumberStyles.None, CultureInfo.InvariantCulture, out var row) => new Read(row),
             "clear" when long.TryParse(argument, NumberStyles.None, CultureInfo.InvariantCulture, out var upTo) => new Clear(upTo),
             "noscript" => new NoScript(),
+            "resync" => new Resync(),
             "diag" => new Diag(argument),
             _ => new Unknown(rest),
         };

@@ -9,12 +9,14 @@ namespace Notifications.Core;
 /// </summary>
 public sealed class Ledger
 {
-    /// <summary>Writing the whole history takes a few milliseconds on the game's thread, so it is not done for every notice.</summary>
+    /// <summary>Each write copies the list and writes the whole file, so it is not done for every notice.</summary>
     public const double FlushSeconds = 10;
 
     private readonly IHistoryStore _store;
     private readonly Action<string> _log;
     private string? _fileName;
+    private string? _lastSaveKey;
+    private string? _lastFileName;
     private bool _canWrite;
     private bool _hasReportedWriteFailure;
     private double _nextFlushAt;
@@ -48,7 +50,14 @@ public sealed class Ledger
             return;
         }
 
-        var fileName = SaveFileName.For(saveKey);
+        // Called every frame with the same key, so the name is worked out only when the key changes.
+        if (saveKey != _lastSaveKey)
+        {
+            _lastSaveKey = saveKey;
+            _lastFileName = SaveFileName.For(saveKey);
+        }
+
+        var fileName = _lastFileName!;
 
         if (fileName == _fileName && Current != null) return;
 
@@ -88,22 +97,29 @@ public sealed class Ledger
 
     public void ForgetToast(long seq)
     {
-        if (Current == null) return;
-
-        Current.ForgetToast(seq);
-        Revision++;
+        if (Current != null && Current.ForgetToast(seq)) Revision++;
     }
 
-    /// <summary>Writes the history if it changed and the last write was long enough ago, or now when forced.</summary>
+    /// <summary>
+    /// Hands the history to the store if it changed and the last write was long enough ago, or now when forced. A write
+    /// that failed after it was handed over leaves the history to be written again.
+    /// </summary>
     public void Flush(double now, bool isForced = false)
     {
+        if (_store.TakeFailure() is { } late)
+        {
+            ReportWriteFailure(late);
+
+            if (Current != null) Current.IsDirty = true;
+        }
+
         if (Current is not { IsDirty: true } history || _fileName == null || !_canWrite) return;
 
         if (!isForced && now < _nextFlushAt) return;
 
         _nextFlushAt = now + FlushSeconds;
 
-        var failure = _store.Write(_fileName, HistoryJson.Write(history));
+        var failure = _store.Write(_fileName, history.Snapshot());
 
         if (failure == null)
         {
@@ -112,7 +128,12 @@ public sealed class Ledger
             return;
         }
 
-        if (!_hasReportedWriteFailure) _log($"could not save the notification history {_fileName} (reported once): {failure}");
+        ReportWriteFailure(_fileName + ": " + failure);
+    }
+
+    private void ReportWriteFailure(string failure)
+    {
+        if (!_hasReportedWriteFailure) _log($"could not save the notification history (reported once): {failure}");
 
         _hasReportedWriteFailure = true;
     }

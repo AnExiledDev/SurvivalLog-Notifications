@@ -5,8 +5,8 @@ namespace Notifications.Tests;
 
 /// <summary>
 /// The game builds a new phone page each time the phone opens and shows it two frames later; the dock icon, its badge
-/// and the newest notices must be on it by then, not on the next check. None of these tests run the check unless they
-/// say so.
+/// and the newest notices must be on it by then (drawn in the next animation frame), not on the next check. None of
+/// these tests run the check unless they say so.
 /// </summary>
 public class PhoneOpeningTests
 {
@@ -27,7 +27,7 @@ public class PhoneOpeningTests
     private static void OpenPhone(PageScript page)
     {
         page.Run("var frame = openFrame(PHONE_URL); flush(); nextFrame();");
-        page.Run("var doc = arrive(frame); nextFrame(); buildPhone(doc); flush();");
+        page.Run("var doc = arrive(frame); nextFrame(); buildPhone(doc); flush(); nextFrame();");
     }
 
     private static void AssertTheAppIsDrawn(PageScript page)
@@ -76,7 +76,36 @@ public class PhoneOpeningTests
         var page = Installed();
 
         OpenPhone(page);
-        page.Run("navigate(frame, PHONE_URL + '?t=2'); flush(); var reloaded = arrive(frame); fireLoad(frame); flush(); buildPhone(reloaded); flush();");
+        page.Run("navigate(frame, PHONE_URL + '?t=2'); flush(); var reloaded = arrive(frame); fireLoad(frame); flush(); buildPhone(reloaded); flush(); nextFrame();");
+
+        AssertTheAppIsDrawn(page);
+    }
+
+    [Fact]
+    public void A_change_on_the_phone_that_leaves_the_app_in_place_asks_for_no_redraw()
+    {
+        var page = Installed();
+
+        OpenPhone(page);
+        page.Run("phone.document.body.appendChild(phone.document.createElement('div')); flush();");
+
+        Assert.Equal(0, page.Number("frameCallbacks.length"));
+        AssertTheAppIsDrawn(page);
+    }
+
+    [Fact]
+    public void Many_changes_in_one_frame_put_the_app_back_in_one_redraw()
+    {
+        var page = Installed();
+
+        OpenPhone(page);
+        page.Run("phone.document.querySelector('.is-slnotify').remove(); flush();");
+        page.Run("for (var i = 0; i < 5; i++) { phone.document.body.appendChild(phone.document.createElement('div')); flush(); }");
+
+        Assert.Equal(1, page.Number("frameCallbacks.length"));
+        Assert.False(page.Has(".is-slnotify"));
+
+        page.Run("nextFrame();");
 
         AssertTheAppIsDrawn(page);
     }

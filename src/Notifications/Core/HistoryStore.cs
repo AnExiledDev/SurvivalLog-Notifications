@@ -1,7 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Notifications.Core;
+
+/// <summary>A history as it was at one moment, safe to write from another thread: its entries never change.</summary>
+public sealed record HistorySnapshot(long Next, long SeenMark, IReadOnlyList<HistoryEntry> Entries);
 
 /// <summary>What the store found under a save's name.</summary>
 public abstract record StoredText
@@ -23,8 +27,15 @@ public interface IHistoryStore
 {
     StoredText Read(string fileName);
 
-    /// <summary>Replaces the file whole, so a crash mid-write leaves the old one. Null on success, else the reason.</summary>
-    string? Write(string fileName, string text);
+    /// <summary>
+    /// Replaces the file whole with the history as it was at the call, so a crash mid-write leaves the old one. The
+    /// write may finish after the call returns. Null when it was taken, else the reason; a failure found later comes
+    /// from <see cref="TakeFailure"/>.
+    /// </summary>
+    string? Write(string fileName, HistorySnapshot snapshot);
+
+    /// <summary>The reason a write failed after <see cref="Write"/> returned, handed out once; null when there is none.</summary>
+    string? TakeFailure();
 
     /// <summary>Moves a file this version cannot read out of the way, keeping it. Null on success, else the reason.</summary>
     string? SetAside(string fileName);
