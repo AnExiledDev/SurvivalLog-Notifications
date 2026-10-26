@@ -19,7 +19,7 @@
 ## 0.2.2
 
 - With `WaveReport` on, the game no longer stays paused when the wave report becomes a toast, and no Escape is needed to carry on.
-- After a game update, a hook that can no longer be placed is logged as an error, so the Mod Manager can mark the mod as maybe needing an update.
+- After a game update, Mod Manager can tell you if this mod may need an update.
 
 ## 0.2.1
 
@@ -27,11 +27,14 @@
 
 ## 0.2.0
 
-- The Mods screen links this changelog.
+- Mod Manager's Mods screen links to this changelog.
 - Settings changed on the Mod Manager's Mods screen take effect at once, including turning a popup or message back into a toast.
-- The Mods screen shows the mod's name, description, category and links.
+- Mod Manager's Mods screen shows the mod's name, description, category and links.
 - Needs Exiled's Toolkit 0.4.0 or newer.
 
 ## 0.1.3
 
-First public release. Turns the game's interrupting popups into toasts, and keeps every notice in a Notifications app on your phone. Needs Exiled's Toolkit.
+- First release.
+- The game's popups that stop play show as toasts instead, small notices in the corner that close on their own.
+- Every notice is kept in a Notifications app on your phone.
+- Needs Exiled's Toolkit.
