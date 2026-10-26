@@ -17,6 +17,7 @@
   <ItemGroup>
     <EmbeddedResource Include="..\..\src\Notifications\notifications.js" LogicalName="Notifications.notifications.js" Link="notifications.js" />
     <EmbeddedResource Include="FakePage.js" LogicalName="Notifications.Tests.FakePage.js" />
+    <EmbeddedResource Include="FrameFake.js" LogicalName="Notifications.Tests.FrameFake.js" />
   </ItemGroup>
 
   <ItemGroup>

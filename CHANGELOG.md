@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1
+
+- The Notifications icon, its unread count and the newest notices are on the phone the moment it opens, instead of showing up a moment later.
+- Made for Survival Log 1.1.19611.
+
 ## 0.4.0
 
 - A "The basket is back" toast when the neighbour's or your companion's basket comes back with her return gifts. It is kept in the phone's Notifications app too. Turn it off with `BasketBack`.

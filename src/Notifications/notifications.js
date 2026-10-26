@@ -10,6 +10,8 @@
     var SVG = 'http://www.w3.org/2000/svg';
     var STYLE_ID = 'slnotify-style';
     var CHECK_MS = 500;
+    var PHONE_PAGE = /PhoneSMS\.html/i;
+    var CHASE_FRAMES = 120;
     var CHIPS = 3;
     var PEEK = 3;
     var FILTERS = ['all', 'unread', 'popup', 'msg', 'mod'];
@@ -184,18 +186,26 @@
         var frames = document.querySelectorAll('iframe');
 
         for (var i = 0; i < frames.length; i++) {
-            var win = frames[i].contentWindow;
+            var phone = phoneIn(frames[i]);
 
-            if (!win) continue;
-
-            try {
-                if (/PhoneSMS\.html/i.test(String(win.location)) && win.document) found.push({ frame: frames[i], win: win, doc: win.document });
-            } catch (e) {
-                // Not ours to read.
-            }
+            if (phone) found.push(phone);
         }
 
         return found;
+    }
+
+    function phoneIn(frame) {
+        var win = frame.contentWindow;
+
+        if (!win) return null;
+
+        try {
+            if (PHONE_PAGE.test(String(win.location)) && win.document) return { frame: frame, win: win, doc: win.document };
+        } catch (e) {
+            // Not ours to read.
+        }
+
+        return null;
     }
 
     function element(doc, tag, className, text) {
@@ -800,8 +810,8 @@
         drawFoot(doc, panelView);
     }
 
-    // The phone page redraws its dock and panel with Vue; an observer on its body puts the app back the moment a
-    // redraw drops it, rather than at the next check.
+    // The phone page redraws its dock and panel with Vue; an observer on the page puts the app back the moment a
+    // redraw drops it, or the game first builds it, rather than at the next check.
     function watch(phone) {
         if (phone.doc.__slnotifyObserved) return;
 
@@ -809,7 +819,7 @@
 
         var Observer = phone.win.MutationObserver || window.MutationObserver;
 
-        if (!Observer || !phone.doc.body) return;
+        if (!Observer) return;
 
         new Observer(function () {
             try {
@@ -817,21 +827,84 @@
             } catch (e) {
                 report('redraw failed: ' + e);
             }
-        }).observe(phone.doc.body, { childList: true, subtree: true });
+        }).observe(phone.doc, { childList: true, subtree: true });
+    }
+
+    function update(phone) {
+        try {
+            ensure(phone);
+            watch(phone);
+            draw(phone.doc);
+        } catch (e) {
+            report('phone update failed: ' + e);
+        }
+    }
+
+    // The game builds a new phone page every time the phone opens and shows it two frames after the page starts, long
+    // before the next check. So a phone page is watched from the moment its frame appears, and the app goes in while
+    // the game builds the page. A new frame first holds an empty page; the phone page replaces it a moment later, so
+    // the frame is looked at each frame until it is there, for about two seconds at most.
+    function chase(frame, framesLeft) {
+        var phone = phoneIn(frame);
+
+        if (phone) {
+            update(phone);
+
+            return;
+        }
+
+        if (framesLeft <= 0 || typeof requestAnimationFrame === 'undefined') return;
+
+        requestAnimationFrame(function () { chase(frame, framesLeft - 1); });
+    }
+
+    function onFrame(frame) {
+        if (!PHONE_PAGE.test(String(frame.src || ''))) return;
+
+        if (!frame.__slnotifyFrame) {
+            frame.__slnotifyFrame = true;
+            frame.addEventListener('load', function () { chase(frame, CHASE_FRAMES); });
+        }
+
+        chase(frame, CHASE_FRAMES);
+    }
+
+    // Every game page is an iframe in this document: a new one, or one sent to a new address, is looked at at once.
+    function watchFrames() {
+        if (typeof MutationObserver === 'undefined') return;
+
+        new MutationObserver(function (records) {
+            for (var i = 0; i < records.length; i++) {
+                var record = records[i];
+
+                if (record.type === 'attributes') {
+                    if (record.target.tagName === 'IFRAME') onFrame(record.target);
+
+                    continue;
+                }
+
+                for (var j = 0; j < record.addedNodes.length; j++) {
+                    var node = record.addedNodes[j];
+
+                    if (node.nodeType !== 1) continue;
+
+                    if (node.tagName === 'IFRAME') {
+                        onFrame(node);
+                        continue;
+                    }
+
+                    var inner = node.getElementsByTagName('iframe');
+
+                    for (var k = 0; k < inner.length; k++) onFrame(inner[k]);
+                }
+            }
+        }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
     }
 
     function check() {
         var phones = phoneFrames();
 
-        for (var i = 0; i < phones.length; i++) {
-            try {
-                ensure(phones[i]);
-                watch(phones[i]);
-                draw(phones[i].doc);
-            } catch (e) {
-                report('phone update failed: ' + e);
-            }
-        }
+        for (var i = 0; i < phones.length; i++) update(phones[i]);
     }
 
     window.__slnotify = {
@@ -848,6 +921,7 @@
         check: check
     };
 
+    watchFrames();
     setInterval(check, CHECK_MS);
     check();
 })();

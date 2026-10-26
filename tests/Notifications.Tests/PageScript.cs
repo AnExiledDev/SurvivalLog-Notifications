@@ -58,7 +58,7 @@ internal sealed class PageScript
 
     public double Number(string expression) => _engine.Evaluate($"Number({expression})").AsNumber();
 
-    private static string Resource(string name)
+    internal static string Resource(string name)
     {
         using var stream = typeof(PageScript).Assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException(name + " is not embedded in the test assembly");
         using var reader = new StreamReader(stream);
