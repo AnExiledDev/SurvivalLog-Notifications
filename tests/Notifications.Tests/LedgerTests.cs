@@ -88,6 +88,22 @@ public class LedgerTests
     }
 
     [Fact]
+    public void NoticesArrivingEverySecondAreNotWrittenEverySecond()
+    {
+        _ledger.Follow(true, "save1", 0);
+        _ledger.Record(Make.Toast(1, "a"), null, null);
+        _ledger.Flush(10);
+
+        for (var second = 1; second <= 5; second++)
+        {
+            _ledger.Record(Make.Toast(1 + second, "later"), null, null);
+            _ledger.Flush(10 + second);
+        }
+
+        Assert.Equal(new[] { "a" }, _store.SavedTitles("save1.json"));
+    }
+
+    [Fact]
     public void ACorruptFileIsKeptAsideAndANewHistoryStarted()
     {
         _store.Files["save1.json"] = new StoredText.Found("garbage");

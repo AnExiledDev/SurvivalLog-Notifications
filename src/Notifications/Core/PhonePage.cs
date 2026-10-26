@@ -253,7 +253,8 @@ public enum PhoneStep
 public sealed class PhoneSync
 {
     public const double ProbeSeconds = 2;
-    public const double UpdateSeconds = 0.5;
+    /// <summary>A full history is up to about 140 KB, so a burst of notices goes over as one update, not one per notice.</summary>
+    public const double UpdateSeconds = 2;
 
     private bool _needsInstall = true;
     private long _sentRevision = long.MinValue;

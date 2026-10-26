@@ -9,7 +9,8 @@ namespace Notifications.Core;
 /// </summary>
 public sealed class Ledger
 {
-    public const double FlushSeconds = 2;
+    /// <summary>Writing the whole history takes a few milliseconds on the game's thread, so it is not done for every notice.</summary>
+    public const double FlushSeconds = 10;
 
     private readonly IHistoryStore _store;
     private readonly Action<string> _log;

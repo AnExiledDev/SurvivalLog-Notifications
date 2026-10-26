@@ -179,6 +179,18 @@ public class PhoneSyncTests
     }
 
     [Fact]
+    public void ABurstOfNoticesOverASecondAndAHalfGoesToThePageOnce()
+    {
+        var sync = new PhoneSync();
+
+        sync.Next(0, 1);
+
+        var steps = new[] { 10.0, 10.3, 10.6, 10.9, 11.2, 11.5 }.Select((now, i) => sync.Next(now, 2 + i)).ToList();
+
+        Assert.Single(steps, step => step == PhoneStep.Update);
+    }
+
+    [Fact]
     public void AnUnchangedHistoryOnlyProbesForTheScriptNowAndThen()
     {
         var sync = new PhoneSync();

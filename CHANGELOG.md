@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+
+- Less stutter while many notices come in: the phone list and the saved history are updated less often. Nothing is lost; the history is still saved when you leave or quit.
+- Made for Survival Log 1.1.19611.
+
 ## 0.4.1
 
 - The Notifications icon, its unread count and the newest notices are on the phone the moment it opens, instead of showing up a moment later.
