@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.4
+
+- The phone opens faster with a long list of notices: it shows the newest ones first and adds more as you scroll down.
+- Made for Survival Log 1.1.19611.
+
 ## 0.4.3
 
 - Fixed: the phone was very laggy while the mod was installed. It opens and scrolls smoothly again, even with a long list of notices.

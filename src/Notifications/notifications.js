@@ -14,6 +14,9 @@
     var CHASE_FRAMES = 120;
     var CHIPS = 3;
     var PEEK = 3;
+    // The list draws this many rows when it opens and this many more each time the player scrolls near its end, so
+    // opening it builds a screenful, not every kept notice.
+    var ROWS_AT_ONCE = 40;
     var FILTERS = ['all', 'unread', 'popup', 'msg', 'mod'];
     var P = {
         bell: 'M6 9a6 6 0 0 1 12 0c0 5 2 7 2 7H4s2-2 2-7z M10 19.5a2 2 0 0 0 4 0',
@@ -99,6 +102,7 @@
         '.is-open .sn-chev{transform:rotate(90deg);color:#fbb034}' +
         '.sn-foot{flex-shrink:0;padding:8px 16px 10px;font-size:10.5px;color:#7a6e5a;border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:10px;align-items:center}' +
         '.sn-kept{flex:1}' +
+        '.sn-more-rows{height:1px}' +
         '.sn-clear{display:inline-flex;gap:4px;align-items:center;color:#a89a82;cursor:pointer}' +
         '.sn-clear svg.sn-g{width:12px;height:12px}' +
         '.sn-clear:hover{color:#e0614f}' +
@@ -130,7 +134,7 @@
     var revision = 0;
     var reported = {};
     // What the player has open in the list; it survives the plugin's redraws and the phone's.
-    var ui = { filter: 'all', open: null, asking: false };
+    var ui = { filter: 'all', open: null, asking: false, limit: ROWS_AT_ONCE };
     // The rows of the last list by number: the plugin sends a row the page already has as its number alone.
     var known = {};
     // Every phone page the app is on, with the app's own parts in it, so a redraw finds them without searching.
@@ -389,22 +393,65 @@
             chip.appendChild(count);
             onClick(chip, function () {
                 ui.filter = filter;
+                ui.limit = ROWS_AT_ONCE;
                 changed();
             });
             filters.appendChild(chip);
             chips[filter] = { chip: chip, label: label, count: count };
         });
 
+        // One listener for every row: a row opens or closes when a click inside it reaches the list. The buttons in an
+        // open row stop their own clicks.
+        listen(scroll, 'click', function (event) {
+            var line = rowOf(event && event.target, scroll);
+
+            if (line) expand(line.__snRow.seq, false);
+        });
         panelView.appendChild(head);
         panelView.appendChild(filters);
         panelView.appendChild(scroll);
         panelView.appendChild(foot);
         panelView.__snRefs = {
             phone: phone, name: name, fresh: fresh, readAll: readAll, day: day, filters: filters, chips: chips, scroll: scroll, foot: foot,
-            footKey: null, footText: null, nodes: {}, revision: -1, rowsRevision: -1
+            footKey: null, footText: null, nodes: {}, revision: -1, rowsRevision: -1, rowsLimit: -1, reveal: null, revealLimit: -1, revealNode: null
         };
 
         return panelView;
+    }
+
+    function rowOf(node, scroll) {
+        for (; node && node !== scroll; node = node.parentElement) {
+            if (node.classList && node.classList.contains('slnotify-row')) return node;
+        }
+
+        return null;
+    }
+
+    // Watches the end of the drawn rows inside the list; when it comes near the visible part, the next rows are drawn.
+    // Without the browser's observer every row is drawn at once, as before.
+    function revealer(phone, refs) {
+        if (refs.reveal) return refs.reveal;
+
+        var Observer = phone.win.IntersectionObserver || window.IntersectionObserver;
+
+        if (!Observer) return null;
+
+        refs.reveal = new Observer(function (entries) {
+            try {
+                for (var i = 0; i < entries.length; i++) {
+                    if (!entries[i].isIntersecting) continue;
+
+                    ui.limit = refs.revealLimit + ROWS_AT_ONCE;
+                    schedule(phone);
+
+                    return;
+                }
+            } catch (e) {
+                report('list scroll failed: ' + e);
+            }
+        }, { root: refs.scroll, rootMargin: '0px 0px 300px 0px' });
+
+        return refs.reveal;
     }
 
     function isListOpen(phone) {
@@ -422,6 +469,7 @@
             expand(seq, true);
         }
 
+        ui.limit = ROWS_AT_ONCE;
         setClass(phone.view, 'is-active', true);
         drawNow(phone);
     }
@@ -615,7 +663,6 @@
         line.__snRow = row;
         line.__snOpen = isOpen;
         line.__snText = view.text;
-        listen(line, 'click', function () { expand(row.seq, false); });
 
         return line;
     }
@@ -723,6 +770,7 @@
         var doc = phone.doc;
         var scroll = refs.scroll;
         var old = refs.nodes;
+        var pendingReveal = null;
         var nodes = {};
         var wanted = [];
 
@@ -731,11 +779,22 @@
         } else {
             var day = null;
             var days = {};
+            var reveal = revealer(phone, refs);
+            var limit = reveal ? rowLimit() : view.rows.length;
+            var drawn = 0;
+            var isCut = false;
 
             for (var i = 0; i < view.rows.length; i++) {
                 var row = view.rows[i];
 
                 if (!isShown(row, ui.filter)) continue;
+
+                if (drawn >= limit) {
+                    isCut = true;
+                    break;
+                }
+
+                drawn++;
 
                 if (typeof row.day === 'number' && row.day !== day) {
                     day = row.day;
@@ -768,6 +827,21 @@
             }
 
             if (wanted.length === 0) wanted.push(keep(old, nodes, 'none', sameText, function () { return emptyBlock(doc, word('emptyFilter'), ''); }));
+
+            if (isCut) {
+                var more = keep(old, nodes, 'more', function () { return true; }, function () { return element(doc, 'div', 'sn-more-rows'); });
+
+                wanted.push(more);
+
+                // Watched again whenever more rows were drawn, so a list still too short to fill the panel keeps
+                // growing until it does.
+                if (refs.revealLimit !== limit || refs.revealNode !== more) {
+                    refs.revealLimit = limit;
+                    refs.revealNode = more;
+                    reveal.unobserve(more);
+                    pendingReveal = { reveal: reveal, node: more };
+                }
+            }
         }
 
         for (var gone in old) {
@@ -789,6 +863,29 @@
         }
 
         refs.nodes = nodes;
+
+        // Observed only once it is in the list, where the observer can see it.
+        if (pendingReveal) {
+            pendingReveal.reveal.observe(pendingReveal.node);
+            pendingReveal = null;
+        }
+    }
+
+    // How many of the shown rows to draw: the rows drawn so far, and always far enough to reach the open row.
+    function rowLimit() {
+        var limit = ui.limit;
+
+        if (ui.open === null) return limit;
+
+        for (var i = 0, at = 0; i < view.rows.length; i++) {
+            if (!isShown(view.rows[i], ui.filter)) continue;
+
+            at++;
+
+            if (view.rows[i].seq === ui.open) return Math.max(limit, at);
+        }
+
+        return limit;
     }
 
     // The foot is drawn again only when what it says changed.
@@ -915,7 +1012,7 @@
 
         var refs = phone.view.__snRefs;
         var isHeadDue = refs.revision !== revision;
-        var isRowsDue = refs.rowsRevision !== revision && isListOpen(phone);
+        var isRowsDue = (refs.rowsRevision !== revision || refs.rowsLimit !== ui.limit) && isListOpen(phone);
 
         if (!isHeadDue && !isRowsDue) return;
 
@@ -930,6 +1027,7 @@
 
         if (isRowsDue) {
             refs.rowsRevision = revision;
+            refs.rowsLimit = ui.limit;
             drawRows(phone, refs, label);
         }
     }
