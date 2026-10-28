@@ -2,6 +2,8 @@ Name: Notifications
 Summary: Stop the game interrupting you for things that only need a glance. Wishes coming true, items received, skill level-ups and drone deliveries show as toasts instead of popups, and every notice is kept in a Notifications app on your phone with the day and hour. Click a toast to open the original popup. Needs Exiled's Toolkit.
 
 Description (BBCode):
+[center][img]https://sldb.core-directive.com/media/save/1-save-safe.png[/img][/center]
+
 Survival Log stops play with a popup for many things that only need a glance: a wish coming true, items received, a skill level-up, a drone unloading. Its short messages (such as not enough stamina) flash by and are easy to miss. Notifications shows all of these as toasts instead, and keeps a full list of them on the phone, so nothing is lost if you looked away.
 
 [size=5]Main features[/size]
