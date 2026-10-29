@@ -14,7 +14,7 @@ namespace Notifications;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.4.4";
+    private const string Version = "0.4.5";
 
     /// <summary>How long quitting waits for the history to reach the disk.</summary>
     private static readonly System.TimeSpan QuitWait = System.TimeSpan.FromSeconds(2);
@@ -27,7 +27,7 @@ public sealed class Plugin : BasePlugin
         var files = new HistoryFiles(Path.Combine(Paths.ConfigPath, "notifications"));
         var ledger = new Ledger(files, log.Write);
         var bridge = new ToastBridge(ledger, log.Write);
-        var closer = new PopupCloser(log.Write);
+        var closer = new PopupCloser(log.Write, log.WriteFileOnly);
         var desk = new NoticeDesk(switches, ledger, bridge, closer, log.Write);
         var harmony = new Harmony(Guid);
 

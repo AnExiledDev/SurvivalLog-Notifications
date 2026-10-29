@@ -54,7 +54,7 @@ How long toasts stay on screen, which corner they use, and whether they are draw
 
 ## Troubleshooting
 
-Check `BepInEx\LogOutput.log` for `===== Notifications 0.4.4 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
+Check `BepInEx\LogOutput.log` for `===== Notifications 0.4.5 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
 
 If a saved list cannot be read, it is moved aside with a `.bad` ending in `BepInEx\config\notifications` and a new list starts, so the old one is never written over.
 

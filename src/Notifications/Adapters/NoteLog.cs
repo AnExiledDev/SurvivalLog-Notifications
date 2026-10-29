@@ -35,6 +35,15 @@ internal sealed class NoteLog
             // The file copy below still has a chance.
         }
 
+        WriteFileOnly(message);
+    }
+
+    /// <summary>
+    /// For routine lines: the file alone. A BepInEx line goes to its console on the game's frame, and one per popup
+    /// closed was part of a stutter. Never throws.
+    /// </summary>
+    public void WriteFileOnly(string message)
+    {
         lock (_gate) AppendToFile($"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {message}");
     }
 

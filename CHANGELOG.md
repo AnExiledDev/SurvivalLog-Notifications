@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.5
+
+- Less stutter when a toast stands in for a popup and the popup closes.
+- Made for Survival Log 1.1.20151.
+
 ## 0.4.4
 
 - The phone opens faster with a long list of notices: it shows the newest ones first and adds more as you scroll down.

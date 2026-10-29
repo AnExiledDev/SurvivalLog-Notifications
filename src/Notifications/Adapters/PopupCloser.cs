@@ -17,13 +17,17 @@ internal sealed class PopupCloser
 {
     private readonly PendingCloses _pending = new();
     private readonly Action<string> _log;
+    private readonly Action<string> _note;
     private readonly HashSet<string> _reportedFailures = new();
     // Made once: a method group passed each frame would be a new delegate each frame.
     private readonly Func<PopupKind, PopupSight> _sight;
 
-    public PopupCloser(Action<string> log)
+    /// <param name="log">For what went wrong: both logs.</param>
+    /// <param name="note">For a close that went as it should: notifications.log only.</param>
+    public PopupCloser(Action<string> log, Action<string> note)
     {
         _log = log;
+        _note = note;
         _sight = SightOf;
     }
 
@@ -49,8 +53,9 @@ internal sealed class PopupCloser
                     Close(again.Kind, again.Line);
 
                     break;
+                // A close that went as it should reads no windows: those reads and a console line made a stutter.
                 case CloseStep.Settled settled:
-                    _log($"{settled.Line}; {Afterwards()}");
+                    _note(settled.Line);
 
                     break;
                 case CloseStep.LeftVisible left:
@@ -58,7 +63,7 @@ internal sealed class PopupCloser
 
                     break;
                 case CloseStep.Quiet quiet:
-                    _log($"{quiet.Line}; {Afterwards()}");
+                    _note(quiet.Line);
 
                     break;
                 case CloseStep.GiveUp giveUp:
@@ -71,12 +76,10 @@ internal sealed class PopupCloser
 
     private void Close(PopupKind kind, string line)
     {
-        var openBefore = OpenUiNames();
-
         try
         {
             SendClose(kind);
-            _log($"{line} (open when sent: {openBefore})");
+            _note(line);
         }
         catch (Exception ex)
         {
