@@ -25,6 +25,20 @@ public class HistoryJsonTests
     }
 
     [Fact]
+    public void ASingleWaveReportStillHidesItsGatheringLineAfterARestart()
+    {
+        var history = new History();
+
+        history.Record(Make.Toast(1, "single"), null, new Reopen.Wave(1, 12, 0, 3, null, SingleWave: true));
+        history.Record(Make.Toast(2, "horde"), null, new Reopen.Wave(2, 30, 1, 1, null));
+
+        var loaded = Load(HistoryJson.Write(history)).Entries.Select(entry => entry.Reopen).OfType<Reopen.Wave>().ToList();
+
+        Assert.True(loaded.Single(wave => wave.WaveIndex == 1).SingleWave);
+        Assert.False(loaded.Single(wave => wave.WaveIndex == 2).SingleWave);
+    }
+
+    [Fact]
     public void WhatTheListShowsSurvivesARestart()
     {
         var history = new History();

@@ -168,6 +168,7 @@ public static class HistoryJson
                 json.WriteNumber("device", wave.DeviceDamage);
                 json.WriteNumber("structure", wave.StructureDamage);
                 WriteOptional(json, "reward", wave.RewardText);
+                if (wave.SingleWave) json.WriteBoolean("single", true);
                 break;
             case Reopen.Skill skill:
                 json.WriteString("type", "skill");
@@ -232,7 +233,8 @@ public static class HistoryJson
                 return new Reopen.Items(read.Select(stack => stack!.Value).ToList(), Ints(payload, "kinds"), Int(payload, "bumper"), Int(payload, "super"),
                     Text(payload, "presentation"), Text(payload, "desc"));
             case "wave":
-                return new Reopen.Wave(Int(payload, "wave"), Int(payload, "kills"), Int(payload, "device"), Int(payload, "structure"), Text(payload, "reward"));
+                return new Reopen.Wave(Int(payload, "wave"), Int(payload, "kills"), Int(payload, "device"), Int(payload, "structure"), Text(payload, "reward"),
+                    Bool(payload, "single"));
             case "skill":
                 if (!payload.TryGetProperty("fields", out var fields) || fields.ValueKind != JsonValueKind.Object) return null;
 
@@ -286,6 +288,9 @@ public static class HistoryJson
 
     private static int Int(JsonElement item, string name) =>
         item.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number) ? number : 0;
+
+    private static bool Bool(JsonElement item, string name) =>
+        item.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.True;
 
     private static string? Text(JsonElement item, string name) =>
         item.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;

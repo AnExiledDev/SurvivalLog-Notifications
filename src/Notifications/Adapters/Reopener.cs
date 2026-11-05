@@ -71,7 +71,7 @@ internal static class Reopener
             case Reopen.Wave wave:
                 if (LogicAdapter() is not { } waveAdapter) return "the game's UI is not ready";
 
-                waveAdapter.OnTowerWaveReportReady(wave.WaveIndex, wave.KillCount, wave.DeviceDamage, wave.StructureDamage, wave.RewardText);
+                waveAdapter.OnTowerWaveReportReady(wave.WaveIndex, wave.KillCount, wave.DeviceDamage, wave.StructureDamage, wave.RewardText, wave.SingleWave);
 
                 return null;
             case Reopen.Skill skill:

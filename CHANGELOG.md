@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.6
+
+- Fixed for the 1.1.20719 game update: zombie wave reports open again from the phone, including the new single-wave report.
+- Made for Survival Log 1.1.20719.
+
 ## 0.4.5
 
 - Less stutter when a toast stands in for a popup and the popup closes.

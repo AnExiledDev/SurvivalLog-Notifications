@@ -95,13 +95,13 @@ internal static class PopupHooks
         else StandIn(desk, PopupKind.Items, desk.Switches.ItemsReceived, () => (NoteTexts.Items(new GameWords(), items), items));
     }
 
-    private static void BeforeWave(int waveIndex, int killCount, int deviceDamage, int structureDamage, string rewardText)
+    private static void BeforeWave(int waveIndex, int killCount, int deviceDamage, int structureDamage, string rewardText, bool singleWave)
     {
         if (Reopener.IsReopening || _desk is not { } desk) return;
 
         StandIn(desk, PopupKind.Wave, desk.Switches.WaveReport, () =>
         {
-            var wave = new Reopen.Wave(waveIndex, killCount, deviceDamage, structureDamage, rewardText);
+            var wave = new Reopen.Wave(waveIndex, killCount, deviceDamage, structureDamage, rewardText, singleWave);
 
             return (NoteTexts.Wave(new GameWords(), wave), wave);
         });

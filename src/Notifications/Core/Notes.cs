@@ -58,8 +58,8 @@ public abstract record Reopen
             left == null || right == null ? left == right : left.SequenceEqual(right);
     }
 
-    /// <summary>The zombie wave report.</summary>
-    public sealed record Wave(int WaveIndex, int KillCount, int DeviceDamage, int StructureDamage, string? RewardText) : Reopen;
+    /// <summary>The zombie wave report. A single wave (game 1.1.20719) hides the "still gathering" line.</summary>
+    public sealed record Wave(int WaveIndex, int KillCount, int DeviceDamage, int StructureDamage, string? RewardText, bool SingleWave = false) : Reopen;
 
     /// <summary>A skill level-up: the level-up info's properties by name, as invariant text.</summary>
     public sealed record Skill(IReadOnlyDictionary<string, string> Fields) : Reopen
