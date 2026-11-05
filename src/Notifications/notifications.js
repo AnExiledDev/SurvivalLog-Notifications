@@ -9,7 +9,6 @@
     var PREFIX = 'slmod|notifications|';
     var SVG = 'http://www.w3.org/2000/svg';
     var STYLE_ID = 'slnotify-style';
-    var CHECK_MS = 500;
     var PHONE_PAGE = /PhoneSMS\.html/i;
     var CHASE_FRAMES = 120;
     var CHIPS = 3;
@@ -139,6 +138,8 @@
     var known = {};
     // Every phone page the app is on, with the app's own parts in it, so a redraw finds them without searching.
     var phones = [];
+    // Exiled's Toolkit's page API, once its script has run. The app goes on phones only from then on.
+    var etk = null;
 
     function kindRules() {
         var css = '';
@@ -156,11 +157,7 @@
     }
 
     function post(message) {
-        try {
-            if (window.vuplex) window.vuplex.postMessage(PREFIX + message);
-        } catch (e) {
-            // Nothing to tell anyone with; the next check tries again.
-        }
+        if (etk) etk.send(PREFIX, message);
     }
 
     // Each distinct problem is reported once, so a broken frame cannot flood the log.
@@ -305,14 +302,10 @@
         var doc = phone.doc;
 
         if (!isLive(phone.style)) {
-            phone.style = doc.getElementById(STYLE_ID);
+            phone.style = etk.addStyle(doc, STYLE_ID, CSS);
 
-            if (!phone.style && (doc.head || doc.body)) {
-                phone.style = element(doc, 'style');
-                phone.style.id = STYLE_ID;
-                phone.style.textContent = CSS;
-                (doc.head || doc.body).appendChild(phone.style);
-            }
+            // Marked like the app's other parts, so the page's watcher does not take it for the game's.
+            if (phone.style) phone.style.__sn = 1;
         }
 
         if (!isLive(phone.icon)) phone.icon = place(phone, '.app-dock', '.is-slnotify', buildIcon);
@@ -1251,27 +1244,28 @@
         }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
     }
 
-    // The fallback for what the watchers miss: a phone page nobody found yet, or one whose page cannot be watched. A
-    // phone that is watched is passed over without a look at its page.
-    function check() {
+    // The fallback for what the frame watchers miss, handed each phone page by the Toolkit's shared check: a phone page
+    // nobody found yet, or one whose page cannot be watched, which is asked again at every check. A watched phone is
+    // done with until its frame loads another page.
+    function checkPhone(doc, frame) {
         prune();
 
-        var frames = document.querySelectorAll('iframe');
+        var found = phoneIn(frame);
 
-        for (var i = 0; i < frames.length; i++) {
-            var kept = frames[i].__slnotifyPhone;
+        if (!found) return false;
 
-            if (kept && kept.watched && !kept.isDropped && isCurrent(kept)) continue;
+        var had = found.doc.__slnotifyPhone;
+        var phone = track(found);
 
-            var found = phoneIn(frames[i]);
+        if (had === phone && !phone.watched) pass(phone);
 
-            if (!found) continue;
+        return phone.watched;
+    }
 
-            var had = found.doc.__slnotifyPhone;
-            var phone = track(found);
-
-            if (had === phone && !phone.watched) pass(phone);
-        }
+    function start(api) {
+        etk = api;
+        watchFrames();
+        etk.watchPages(PHONE_PAGE, checkPhone);
     }
 
     // A list from the plugin. A row the page already has comes as its number; a number the page does not know means
@@ -1313,9 +1307,7 @@
         changed();
     }
 
-    window.__slnotify = { set: set, check: check };
+    window.__slnotify = { set: set };
 
-    watchFrames();
-    setInterval(check, CHECK_MS);
-    check();
+    (window.ExiledToolkitReady = window.ExiledToolkitReady || []).push(start);
 })();

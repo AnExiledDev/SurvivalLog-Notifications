@@ -1,4 +1,6 @@
 using System;
+using ExiledToolkit.Game;
+using ExiledToolkit.Web;
 using GameCore.HotUpdate;
 using Notifications.Core;
 
@@ -15,7 +17,7 @@ internal sealed class GameWords : IViewWords
     /// <param name="icons">The game's web icons; without them no item has a picture.</param>
     public GameWords(IconIndex? icons = null)
     {
-        IsChinese = GameState.IsChinese();
+        IsChinese = GameLanguage.IsChinese();
         _icons = icons ?? IconIndex.Empty;
     }
 
@@ -25,7 +27,7 @@ internal sealed class GameWords : IViewWords
     {
         try
         {
-            return NonEmpty(ConstantTextTools.ToConstantTextOrEmpty(id));
+            return GameNames.NonEmpty(ConstantTextTools.ToConstantTextOrEmpty(id));
         }
         catch (Exception)
         {
@@ -34,16 +36,16 @@ internal sealed class GameWords : IViewWords
     }
 
     public string? ItemName(int configId) =>
-        Read(config => config.Get_Config_Item(configId) is { } item ? Localized(config, item.ItemName) ?? NonEmpty(item.ItemName_Local) : null);
+        Read(config => config.Get_Config_Item(configId) is { } item ? GameNames.Translate(config, item.ItemName) ?? GameNames.NonEmpty(item.ItemName_Local) : null);
 
     public string? ItemIcon(int configId) =>
-        _icons.Resolve(Read(config => config.Get_Config_Item(configId) is { } item ? NonEmpty(item.WebIcon) ?? NonEmpty(item.Icon) : null));
+        _icons.Resolve(Read(config => config.Get_Config_Item(configId) is { } item ? GameNames.NonEmpty(item.WebIcon) ?? GameNames.NonEmpty(item.Icon) : null));
 
     public string? BuffName(int buffId) =>
-        buffId <= 0 ? null : Read(config => config.Get_Config_Buff(buffId) is { } buff ? Localized(config, buff.Name) ?? NonEmpty(buff.Name_Local) : null);
+        buffId <= 0 ? null : Read(config => config.Get_Config_Buff(buffId) is { } buff ? GameNames.Translate(config, buff.Name) ?? GameNames.NonEmpty(buff.Name_Local) : null);
 
     public string? SurvivorName(int playerSelectId) =>
-        Read(config => config.Get_Config_PlayerSelect(playerSelectId) is { } survivor ? Localized(config, survivor.Name) ?? NonEmpty(survivor.Name_Local) : null);
+        Read(config => config.Get_Config_PlayerSelect(playerSelectId) is { } survivor ? GameNames.Translate(config, survivor.Name) ?? GameNames.NonEmpty(survivor.Name_Local) : null);
 
     /// <summary>A system's name and the hint the game shows when it unlocks.</summary>
     public (string? Name, string? Tips) SystemLock(int systemId)
@@ -53,9 +55,9 @@ internal sealed class GameWords : IViewWords
         {
             if (config.Get_Config_SystemLock(systemId) is not { } system) return null;
 
-            tips = Localized(config, system.Tips) ?? NonEmpty(system.Tips_Local);
+            tips = GameNames.Translate(config, system.Tips) ?? GameNames.NonEmpty(system.Tips_Local);
 
-            return Localized(config, system.SysName) ?? NonEmpty(system.SysName_Local);
+            return GameNames.Translate(config, system.SysName) ?? GameNames.NonEmpty(system.SysName_Local);
         });
 
         return (name, tips);
@@ -73,16 +75,4 @@ internal sealed class GameWords : IViewWords
             return null;
         }
     }
-
-    /// <summary>The game answers a key it has no text for with the key itself, which is no text either.</summary>
-    private static string? Localized(ConfigManager config, string? key)
-    {
-        if (string.IsNullOrEmpty(key)) return null;
-
-        var local = config.GetLocalTxt(key);
-
-        return string.IsNullOrEmpty(local) || local == key ? null : local;
-    }
-
-    private static string? NonEmpty(string? text) => string.IsNullOrEmpty(text) ? null : text;
 }

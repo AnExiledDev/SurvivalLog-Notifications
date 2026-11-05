@@ -52,7 +52,7 @@ internal sealed class ToastBridge
         {
             case Reopen.Items { Stacks.Count: > 0 } items:
             {
-                var words = new GameWords(WebIcons.Shared(_log));
+                var words = new GameWords(NoteIcons.Get(_log));
                 var chips = items.Stacks.Take(ToastItem.Max).Select(stack => new ToastItem(NoteTexts.ItemName(words, stack.ConfigId))
                 {
                     Icon = words.ItemIcon(stack.ConfigId),
@@ -62,7 +62,7 @@ internal sealed class ToastBridge
                 return request with { Body = NoteTexts.Plain(items.Desc) is { Length: > 0 } desc ? desc : null, Items = chips, Icon = chips[0].Icon };
             }
             case Reopen.Wish { ItemConfigId: > 0 } wish:
-                return request with { Icon = new GameWords(WebIcons.Shared(_log)).ItemIcon(wish.ItemConfigId) };
+                return request with { Icon = new GameWords(NoteIcons.Get(_log)).ItemIcon(wish.ItemConfigId) };
             default:
                 return request;
         }

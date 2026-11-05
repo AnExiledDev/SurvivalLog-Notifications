@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ExiledToolkit.Game;
 using Notifications.Core;
 using UnityEngine;
 
@@ -36,7 +37,7 @@ public sealed class NoteTicker : MonoBehaviour
         {
             try
             {
-                ledger.Follow(GameState.IsInGame(), GameState.SaveKey(), now);
+                ledger.Follow(GameState.IsInGame(), SaveSlot.CurrentKey(), now);
             }
             catch (Exception ex)
             {

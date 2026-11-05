@@ -1,7 +1,7 @@
 using System;
 using GameCore.HotUpdate;
 using GameCore.HotUpdate.Battle.Logic;
-using HarmonyLib;
+using ExiledToolkit.Game;
 using Notifications.Core;
 using UnityEngine;
 
@@ -22,13 +22,13 @@ internal static class DroneHooks
     private static DroneAwait.Arrival? _settling;
     private static SwitchedHook? _settle;
 
-    public static void Apply(Harmony harmony, NoticeDesk desk, Action<string> log)
+    public static void Apply(PatchKit hooks, NoticeDesk desk)
     {
         _desk = desk;
 
         // 0x2fc2310; the settle that hands the cargo over. The load-time restore is left alone.
-        _settle = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(StrangerTradeActiveManager), nameof(StrangerTradeActiveManager.SettleDroneReturn)),
-            typeof(DroneHooks), nameof(BeforeSettle), nameof(AfterSettle), "drone deliveries become toasts", "their unload popups stay popups", log));
+        _settle = new SwitchedHook(() => hooks.Patch(typeof(DroneHooks), typeof(StrangerTradeActiveManager), nameof(StrangerTradeActiveManager.SettleDroneReturn),
+            prefix: nameof(BeforeSettle), postfix: nameof(AfterSettle), done: "drone deliveries become toasts", consequence: "their unload popups stay popups"));
     }
 
     /// <summary>Called on the main thread at start and after each change of a switch.</summary>

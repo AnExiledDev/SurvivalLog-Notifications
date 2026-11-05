@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using GameCore.HotUpdate.ReduxUI;
+using ExiledToolkit.Web;
 using Notifications.Core;
 
 namespace Notifications.Adapters;
@@ -14,6 +14,7 @@ internal sealed class PhoneApp
 {
     private const string ScriptResource = "Notifications.notifications.js";
 
+    private readonly PageMailbox _messages = PageInbox.Listen(PageMessage.Prefix);
     private readonly PhoneSync _sync = new();
     private readonly PhoneList _list = new();
     private readonly Ledger _ledger;
@@ -31,7 +32,7 @@ internal sealed class PhoneApp
 
     public void Tick(double now)
     {
-        while (PageMessages.TryTake(out var message)) Handle(message);
+        while (_messages.TryTake(out var message)) Handle(PageMessage.Parse(message));
 
         var step = _sync.Next(now, _ledger.Revision);
 
@@ -94,28 +95,15 @@ internal sealed class PhoneApp
         }
     }
 
-    private string View() => _list.Json(_ledger.Current, new GameWords(WebIcons.Shared(_log)), GameState.Stamp()?.Day);
+    private string View() => _list.Json(_ledger.Current, new GameWords(NoteIcons.Get(_log)), GameState.Stamp()?.Day);
 
     private void Run(string javaScript, double now)
     {
-        var webView = GameSingleton.Existing<ReduxUISystem>()?.GetWebUILayer()?.canvasWebViewPrefab?.WebView;
+        if (WebUi.TryRun(javaScript, out var failure)) return;
 
-        if (webView == null)
-        {
-            _sync.NotSent(now);
+        _sync.NotSent(now);
 
-            return;
-        }
-
-        try
-        {
-            webView.ExecuteJavaScript(javaScript, null);
-        }
-        catch (Exception ex)
-        {
-            _sync.NotSent(now);
-            LogOnce("run", "could not reach the phone page: " + ex.Message);
-        }
+        if (failure != null) LogOnce("run", "could not reach the phone page: " + failure.Message);
     }
 
     /// <summary>

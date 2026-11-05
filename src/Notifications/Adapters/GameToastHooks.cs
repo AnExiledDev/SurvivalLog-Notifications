@@ -1,6 +1,6 @@
 using System;
 using GameCore.HotUpdate.ReduxUI;
-using HarmonyLib;
+using ExiledToolkit.Game;
 using Il2CppInterop.Runtime;
 using Notifications.Core;
 
@@ -21,21 +21,21 @@ internal static class GameToastHooks
     private static SwitchedHook? _systemUnlock;
     private static SwitchedHook? _characterUnlock;
 
-    public static void Apply(Harmony harmony, NoticeDesk desk, Action<string> log)
+    public static void Apply(PatchKit hooks, NoticeDesk desk)
     {
         _desk = desk;
 
         // 0x27f32f0
-        _popText = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(Ac_PopText_AddPopText), nameof(Ac_PopText_AddPopText.SendAction)), typeof(GameToastHooks),
-            nameof(BeforePopText), null, "the game's short texts go to toasts and the history", "they stay as the game draws them and are not in the history", log));
+        _popText = new SwitchedHook(() => hooks.Patch(typeof(GameToastHooks), typeof(Ac_PopText_AddPopText), nameof(Ac_PopText_AddPopText.SendAction),
+            prefix: nameof(BeforePopText), done: "the game's short texts go to toasts and the history", consequence: "they stay as the game draws them and are not in the history"));
 
         // 0x2822f90
-        _systemUnlock = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(LogicAdapter), nameof(LogicAdapter.OnSystemUnlockToast)), typeof(GameToastHooks),
-            nameof(BeforeSystemUnlock), nameof(AfterUnlock), "system unlocks go to toasts and the history", "they stay as the game draws them and are not in the history", log));
+        _systemUnlock = new SwitchedHook(() => hooks.Patch(typeof(GameToastHooks), typeof(LogicAdapter), nameof(LogicAdapter.OnSystemUnlockToast),
+            prefix: nameof(BeforeSystemUnlock), postfix: nameof(AfterUnlock), done: "system unlocks go to toasts and the history", consequence: "they stay as the game draws them and are not in the history"));
 
         // 0x2812e70
-        _characterUnlock = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(LogicAdapter), nameof(LogicAdapter.OnCharacterUnlockToast)), typeof(GameToastHooks),
-            nameof(BeforeCharacterUnlock), nameof(AfterUnlock), "survivor unlocks go to toasts and the history", "they stay as the game draws them and are not in the history", log));
+        _characterUnlock = new SwitchedHook(() => hooks.Patch(typeof(GameToastHooks), typeof(LogicAdapter), nameof(LogicAdapter.OnCharacterUnlockToast),
+            prefix: nameof(BeforeCharacterUnlock), postfix: nameof(AfterUnlock), done: "survivor unlocks go to toasts and the history", consequence: "they stay as the game draws them and are not in the history"));
     }
 
     /// <summary>Called on the main thread at start and after each change of a switch.</summary>
@@ -51,7 +51,7 @@ internal static class GameToastHooks
         if (_unlocksShowing > 0 || _desk is not { } desk) return true;
 
         return desk.IsGameShowing("short text", desk.ForGameToast(desk.Switches.PopText), () =>
-            NoteTexts.PopText(GameState.IsChinese(), Text) is { } note ? (note, null) : null);
+            NoteTexts.PopText(GameLanguage.IsChinese(), Text) is { } note ? (note, null) : null);
     }
 
     private static bool BeforeSystemUnlock(int funcSwitchId, out bool __state)

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using GameCore.HotUpdate;
 using GameCore.HotUpdate.ReduxUI;
-using HarmonyLib;
+using ExiledToolkit.Game;
 using Notifications.Core;
 using GameItemList = Il2CppSystem.Collections.Generic.List<Il2CppSystem.Collections.Generic.KeyValuePair<int, int>>;
 using GameIntList = Il2CppSystem.Collections.Generic.List<int>;
@@ -24,26 +24,26 @@ internal static class PopupHooks
     private static SwitchedHook? _wave;
     private static SwitchedHook? _skill;
 
-    public static void Apply(Harmony harmony, NoticeDesk desk, Action<string> log)
+    public static void Apply(PatchKit hooks, NoticeDesk desk)
     {
         _desk = desk;
 
         // 0x280c850; the game's own OnWishCompleted (0x2825300) jumps within its first 14 bytes and cannot be hooked.
-        _wish = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(Ac_WishFinished_WebOpen), nameof(Ac_WishFinished_WebOpen.SendAction)), typeof(PopupHooks),
-            nameof(BeforeWish), null, "wish popups become toasts", "they stay popups", log));
+        _wish = new SwitchedHook(() => hooks.Patch(typeof(PopupHooks), typeof(Ac_WishFinished_WebOpen), nameof(Ac_WishFinished_WebOpen.SendAction),
+            prefix: nameof(BeforeWish), done: "wish popups become toasts", consequence: "they stay popups"));
 
         // 0x27f7750, the overload the others call; OnOpenAddItemPop (0x281f2e0) and its bumper twin jump too early.
-        _items = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(Ac_RewardList_OpenAddItem), nameof(Ac_RewardList_OpenAddItem.SendAction),
-                new[] { typeof(GameItemList), typeof(GameIntList), typeof(int), typeof(int), typeof(string), typeof(string) }), typeof(PopupHooks),
-            nameof(BeforeItems), null, "received-items popups become toasts", "they stay popups", log));
+        _items = new SwitchedHook(() => hooks.Patch(typeof(PopupHooks), typeof(Ac_RewardList_OpenAddItem), nameof(Ac_RewardList_OpenAddItem.SendAction),
+            new[] { typeof(GameItemList), typeof(GameIntList), typeof(int), typeof(int), typeof(string), typeof(string) },
+            prefix: nameof(BeforeItems), done: "received-items popups become toasts", consequence: "they stay popups"));
 
         // 0x2823e60
-        _wave = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(LogicAdapter), nameof(LogicAdapter.OnTowerWaveReportReady)), typeof(PopupHooks),
-            nameof(BeforeWave), null, "zombie wave reports become toasts", "they stay popups", log));
+        _wave = new SwitchedHook(() => hooks.Patch(typeof(PopupHooks), typeof(LogicAdapter), nameof(LogicAdapter.OnTowerWaveReportReady),
+            prefix: nameof(BeforeWave), done: "zombie wave reports become toasts", consequence: "they stay popups"));
 
         // 0x2822280
-        _skill = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(LogicAdapter), nameof(LogicAdapter.OnSkillLevelUpPopupOpen)), typeof(PopupHooks),
-            nameof(BeforeSkill), null, "skill level-up popups become toasts", "they stay popups", log));
+        _skill = new SwitchedHook(() => hooks.Patch(typeof(PopupHooks), typeof(LogicAdapter), nameof(LogicAdapter.OnSkillLevelUpPopupOpen),
+            prefix: nameof(BeforeSkill), done: "skill level-up popups become toasts", consequence: "they stay popups"));
     }
 
     /// <summary>Called on the main thread at start and after each change of a switch.</summary>

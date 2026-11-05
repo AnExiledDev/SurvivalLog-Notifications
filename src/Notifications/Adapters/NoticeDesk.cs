@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using ExiledToolkit;
+using ExiledToolkit.Game;
 using Notifications.Core;
 
 namespace Notifications.Adapters;
@@ -15,15 +15,16 @@ internal sealed class NoticeDesk : INoticeOut
     private readonly Ledger _ledger;
     private readonly ToastBridge _toasts;
     private readonly PopupCloser _closer;
+    private readonly PatchKit _hooks;
     private readonly Action<string> _log;
-    private readonly HashSet<string> _reportedFailures = new();
 
-    public NoticeDesk(Switches switches, Ledger ledger, ToastBridge toasts, PopupCloser closer, Action<string> log)
+    public NoticeDesk(Switches switches, Ledger ledger, ToastBridge toasts, PopupCloser closer, PatchKit hooks, Action<string> log)
     {
         Switches = switches;
         _ledger = ledger;
         _toasts = toasts;
         _closer = closer;
+        _hooks = hooks;
         _log = log;
     }
 
@@ -115,8 +116,5 @@ internal sealed class NoticeDesk : INoticeOut
     }
 
     /// <summary>Each kind of failure is logged the first time only, so a hook that fails every call cannot flood the log.</summary>
-    public void Fail(string doing, Exception ex)
-    {
-        if (_reportedFailures.Add(doing)) _log($"failed {doing}, the game shows it as usual (logged once): {ex}");
-    }
+    public void Fail(string doing, Exception ex) => _hooks.Fail(doing + ", the game shows it as usual", ex);
 }

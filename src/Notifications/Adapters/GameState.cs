@@ -1,4 +1,5 @@
 using System;
+using ExiledToolkit.Game;
 using GameCore.HotUpdate;
 using GameCore.HotUpdate.Battle.Logic;
 using Notifications.Core;
@@ -21,21 +22,6 @@ internal static class GameState
         }
     }
 
-    /// <summary>The loaded save's file name, or null before the game has named it.</summary>
-    public static string? SaveKey()
-    {
-        try
-        {
-            var name = GameSingleton.Existing<GameSaveManager>()?.gameSave?.FileName;
-
-            return string.IsNullOrEmpty(name) ? null : name;
-        }
-        catch (Exception)
-        {
-            return null;
-        }
-    }
-
     /// <summary>The in-game day and hour, by the game's own clock.</summary>
     public static GameStamp? Stamp()
     {
@@ -48,18 +34,6 @@ internal static class GameState
         catch (Exception)
         {
             return null;
-        }
-    }
-
-    public static bool IsChinese()
-    {
-        try
-        {
-            return GameSingleton.Existing<SettingManager>()?.IsChinese() == true;
-        }
-        catch (Exception)
-        {
-            return false;
         }
     }
 

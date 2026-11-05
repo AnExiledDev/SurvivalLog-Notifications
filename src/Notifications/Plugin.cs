@@ -3,6 +3,8 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using ExiledToolkit;
+using ExiledToolkit.Game;
+using ExiledToolkit.Kit;
 using HarmonyLib;
 using Notifications.Adapters;
 using Notifications.Core;
@@ -10,11 +12,11 @@ using Notifications.Core;
 namespace Notifications;
 
 [BepInPlugin(Guid, "Notifications", Version)]
-[BepInDependency(ExiledToolkit.Plugin.Guid, ">=0.7.0")]
+[BepInDependency(ExiledToolkit.Plugin.Guid, ">=0.19.0")]
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.4.6";
+    private const string Version = "0.4.7";
 
     /// <summary>How long quitting waits for the history to reach the disk.</summary>
     private static readonly System.TimeSpan QuitWait = System.TimeSpan.FromSeconds(2);
@@ -23,22 +25,22 @@ public sealed class Plugin : BasePlugin
     {
         var entries = BindSwitches();
         var switches = Read(entries);
-        var log = new NoteLog(Log, Path.Combine(Paths.BepInExRootPath, "notifications.log"));
+        var log = new ModLog(Log, "notifications.log");
         var files = new HistoryFiles(Path.Combine(Paths.ConfigPath, "notifications"));
         var ledger = new Ledger(files, log.Write);
         var bridge = new ToastBridge(ledger, log.Write);
         var closer = new PopupCloser(log.Write, log.WriteFileOnly);
-        var desk = new NoticeDesk(switches, ledger, bridge, closer, log.Write);
-        var harmony = new Harmony(Guid);
+        var hooks = new PatchKit(new Harmony(Guid), log.Write);
+        var desk = new NoticeDesk(switches, ledger, bridge, closer, hooks, log.Write);
 
         log.Write($"===== Notifications {Version} started");
 
+        NoteIcons.StartScan();
         Toasts.Raised += bridge.OnRaised;
-        PageMessages.Apply(harmony, log.Write);
-        PopupHooks.Apply(harmony, desk, log.Write);
-        DroneHooks.Apply(harmony, desk, log.Write);
-        BasketHooks.Apply(harmony, desk, log.Write);
-        GameToastHooks.Apply(harmony, desk, log.Write);
+        PopupHooks.Apply(hooks, desk);
+        DroneHooks.Apply(hooks, desk);
+        BasketHooks.Apply(hooks, desk);
+        GameToastHooks.Apply(hooks, desk);
 
         LiveSettings.Watch(() =>
         {

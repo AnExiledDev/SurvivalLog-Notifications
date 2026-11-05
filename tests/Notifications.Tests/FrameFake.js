@@ -119,7 +119,7 @@ var PHONE_URL = 'https://ui.local/UI/PhoneSMS/PhoneSMS.html';
 var phone = null;
 
 function frameWindow(location, doc) {
-    return { location: location, document: doc, MutationObserver: MutationObserver };
+    return { location: location, document: withAddress(doc, location), MutationObserver: MutationObserver };
 }
 
 // A game page frame, as Root.html makes one: appended with its address, still holding an empty page.

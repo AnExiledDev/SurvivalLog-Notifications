@@ -4,19 +4,28 @@ using Notifications.Core;
 namespace Notifications.Tests;
 
 /// <summary>
-/// notifications.js exactly as the plugin embeds it, run in Jint on top of FakePage.js, sent with the same calls the
-/// plugin makes. Tests talk to the page in JavaScript expressions and read back plain strings, numbers and booleans.
+/// notifications.js exactly as the plugin embeds it, run in Jint on top of FakePage.js with Exiled's Toolkit's page API
+/// (api.js), sent with the same calls the plugin makes. Tests talk to the page in JavaScript expressions and read back
+/// plain strings, numbers and booleans.
 /// </summary>
 internal sealed class PageScript
 {
     private readonly Engine _engine = new();
 
-    /// <summary>The fake page, then the statements that draw what the test needs in it (the phone is usually <c>phone</c>).</summary>
-    public PageScript(string setup)
+    /// <summary>
+    /// The fake page, then the statements that draw what the test needs in it (the phone is usually <c>phone</c>), then
+    /// the Toolkit's script unless the test loads it itself after notifications.js.
+    /// </summary>
+    public PageScript(string setup, bool isToolkitFirst = true)
     {
         _engine.Execute(Resource("Notifications.Tests.FakePage.js"));
         _engine.Execute(setup);
+
+        if (isToolkitFirst) LoadToolkit();
     }
+
+    /// <summary>Exiled's Toolkit's page script, which the game can run before or after this mod's.</summary>
+    public void LoadToolkit() => Run(Resource("ExiledToolkit.api.js"));
 
     /// <summary>A phone frame with this day label, as the global <c>phone</c>.</summary>
     public static PageScript WithPhone(string dayLabel = "DAY {0}") => new($"var phone = addPhone({{ dayLabel: '{dayLabel}' }});");

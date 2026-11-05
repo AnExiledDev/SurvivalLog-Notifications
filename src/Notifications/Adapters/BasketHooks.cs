@@ -1,7 +1,7 @@
 using System;
 using GameCore.HotUpdate;
 using GameCore.HotUpdate.Battle.Logic;
-using HarmonyLib;
+using ExiledToolkit.Game;
 using Notifications.Core;
 
 namespace Notifications.Adapters;
@@ -17,14 +17,14 @@ internal static class BasketHooks
     private static int _scheduledBefore = -1;
     private static SwitchedHook? _settle;
 
-    public static void Apply(Harmony harmony, NoticeDesk desk, Action<string> log)
+    public static void Apply(PatchKit hooks, NoticeDesk desk)
     {
         _desk = desk;
 
         // 0x27260f0; the settle that puts her return gifts in the basket, run when the return timeline ends or on the
         // next hour. Private, so it is found by name.
-        _settle = new SwitchedHook(() => HookPatch.Apply(harmony, AccessTools.Method(typeof(NeighborBasketReturnManager), "SettleReturn"),
-            typeof(BasketHooks), nameof(BeforeSettle), nameof(AfterSettle), "basket returns raise a toast", "a returning basket shows no toast", log));
+        _settle = new SwitchedHook(() => hooks.Patch(typeof(BasketHooks), typeof(NeighborBasketReturnManager), "SettleReturn",
+            prefix: nameof(BeforeSettle), postfix: nameof(AfterSettle), done: "basket returns raise a toast", consequence: "a returning basket shows no toast"));
     }
 
     /// <summary>Called on the main thread at start and after each change of a switch.</summary>

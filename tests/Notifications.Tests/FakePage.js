@@ -45,6 +45,9 @@ var FakeElement = class {
 
     get firstChild() { return this.children[0] || null; }
 
+    // A frame's document, as the Toolkit's page watch reads it: whatever its window holds now.
+    get contentDocument() { return this.contentWindow ? this.contentWindow.document : null; }
+
     get nextSibling() {
         if (!this.parentElement) return null;
 
@@ -186,7 +189,10 @@ function fakeDocument() {
         createElement: function (tagName) { return new FakeElement(tagName); },
         createElementNS: function (namespace, tagName) { return new FakeElement(tagName); },
         querySelector: function (selector) { return doc.documentElement.querySelector(selector); },
-        querySelectorAll: function (selector) { return doc.documentElement.querySelectorAll(selector); }
+        querySelectorAll: function (selector) { return doc.documentElement.querySelectorAll(selector); },
+        getElementsByTagName: function (tag) {
+            return descendantsOf(doc.documentElement).filter(function (element) { return element.tagName === String(tag).toUpperCase(); });
+        }
     };
 
     doc.documentElement.isDocumentRoot = true;
@@ -198,9 +204,16 @@ function fakeDocument() {
 
 var document = fakeDocument();
 
+// The Toolkit's page watch passes over a document whose window's address is empty or about:blank, as a new frame's is.
+function withAddress(doc, location) {
+    doc.defaultView = { location: { href: String(location) } };
+
+    return doc;
+}
+
 // A frame's window. Its observers are run by mutate(), standing in for the browser noticing the page changed.
 function fakeWindow(location, doc) {
-    var win = { location: location, document: doc, observers: [] };
+    var win = { location: location, document: withAddress(doc, location), observers: [] };
 
     win.MutationObserver = function (callback) {
         var observer = { callback: callback, target: null };
@@ -244,6 +257,7 @@ function addPhone(spec) {
     var frame = document.body.appendChild(new FakeElement('iframe'));
     var win = fakeWindow('https://ui.local/UI/PhoneSMS/PhoneSMS.html', buildPhoneDocument(spec || {}));
 
+    frame.src = win.location;
     frame.contentWindow = win;
 
     return win;
@@ -262,7 +276,7 @@ function addForeignFrame() {
 
 // The phone frame loading its page again: a fresh document with none of the app in it.
 function reloadPhone(win, spec) {
-    win.document = buildPhoneDocument(spec || {});
+    win.document = withAddress(buildPhoneDocument(spec || {}), win.location);
     win.observers = [];
 }
 
