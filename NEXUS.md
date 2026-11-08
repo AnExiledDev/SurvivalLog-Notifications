@@ -39,6 +39,7 @@ Works in English and Chinese.
 [*]Survival Log 1.1.20151. A game update can break it until the mod is updated.[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]. Install it first.[/*]
 [*]Exiled's Toolkit 0.19.0 or newer, which draws the toasts and applies changed settings at once. Notifications does not load without it.[/*]
+[*]Optional: [url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url]. With it, you can change every setting in game on its Mods screen and see what each one does, without opening the config file.[/*]
 [/list]
 
 [size=5]Installation[/size]
@@ -99,6 +100,7 @@ Notifications 不会往存档里写入任何内容，也不会修改游戏文件
 [*]Survival Log 1.1.20151。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]，请先安装。[/*]
 [*]Exiled's Toolkit 0.19.0 或更新版本，用于显示通知，并让改动的设置立即生效。没有它，Notifications 无法加载。[/*]
+[*]可选：[url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url]。装了它，可以在游戏里它的「模组」界面修改每项设置，并看到每项的说明，不用打开配置文件。[/*]
 [/list]
 
 [size=5]安装[/size]

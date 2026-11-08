@@ -25,6 +25,7 @@ Notifications adds nothing to your save and does not edit game files. The list i
 - Survival Log 1.1.20151. Built and tested on this version; a game update can break it until the mod is updated.
 - The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
 - **Exiled's Toolkit** 0.19.0 or newer, which draws the toasts and applies changed settings at once. Notifications does not load without it.
+- Optional: [Mod Manager](https://www.nexusmods.com/survivallog/mods/73). With it, you can change every setting in game on its Mods screen and see what each one does, without opening the config file.
 
 ## Install
 
