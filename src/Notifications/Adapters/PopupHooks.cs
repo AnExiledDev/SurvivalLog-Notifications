@@ -12,7 +12,7 @@ namespace Notifications.Adapters;
 /// <summary>
 /// The game popups that only show something and close: each becomes a toast that opens it again when clicked. The game
 /// always opens its popup, as skipping it left the game waiting on a popup that never closed (an eaten craved food never
-/// finished); once the toast is up, the popup is closed again through the game's own close action. Anything else, a
+/// finished); once the toast is up, the popup is closed again through the game's close action. Anything else, a
 /// failure included, leaves the popup up. The popups that ask the player to choose (events, and picking items up with
 /// Pick All) are never hooked. Static because a Harmony patch has nowhere else to look.
 /// </summary>
@@ -28,7 +28,7 @@ internal static class PopupHooks
     {
         _desk = desk;
 
-        // 0x280c850; the game's own OnWishCompleted (0x2825300) jumps within its first 14 bytes and cannot be hooked.
+        // 0x280c850; the game's OnWishCompleted (0x2825300) jumps within its first 14 bytes and cannot be hooked.
         _wish = new SwitchedHook(() => hooks.Patch(typeof(PopupHooks), typeof(Ac_WishFinished_WebOpen), nameof(Ac_WishFinished_WebOpen.SendAction),
             prefix: nameof(BeforeWish), done: "wish popups become toasts", consequence: "they stay popups"));
 

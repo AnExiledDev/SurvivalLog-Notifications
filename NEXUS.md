@@ -8,7 +8,7 @@ Survival Log stops play with a popup for many things that only need a glance: a 
 
 [size=5]Main features[/size]
 [list]
-[*][b]Popups become toasts[/b]: wishes fulfilled, items received, skill level-ups and drone deliveries show a toast instead of stopping play. Each can be switched back to the popup on its own. The zombie wave report stays the game's own popup unless you turn on WaveReport.[/*]
+[*][b]Popups become toasts[/b]: wishes fulfilled, items received, skill level-ups and drone deliveries show a toast instead of stopping play. Each can be switched back to the popup on its own. The zombie wave report stays the game's popup unless you turn on WaveReport.[/*]
 [*][b]Click to open[/b]: clicking the toast opens the original popup, with the same contents.[/*]
 [*][b]The game's short messages too[/b]: short messages, system unlocks and new survivor unlocks show as toasts that stay on screen longer. They can also be left to the game while still being kept on the phone.[/*]
 [*][b]Basket is back[/b]: a toast when the neighbour's or your companion's basket comes back with her return gifts. The game only sends a text message for it.[/*]

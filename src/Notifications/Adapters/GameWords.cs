@@ -7,7 +7,7 @@ using Notifications.Core;
 namespace Notifications.Adapters;
 
 /// <summary>
-/// The game's own words for a notice, read from its tables in the language it is set to. A line the game has no text
+/// The game's words for a notice, read from its tables in the language it is set to. A line the game has no text
 /// for is null, and the core falls back to its own.
 /// </summary>
 internal sealed class GameWords : IViewWords

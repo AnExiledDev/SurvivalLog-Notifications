@@ -109,7 +109,7 @@ public abstract record CloseStep(PopupKind Kind)
 /// <summary>
 /// Popups a toast stood in for, which the game still opens and the mod then closes. Skipping the game's open left the
 /// game waiting for a popup that never closed, so the popup opens as usual and is closed from a later frame, never from
-/// inside the game's own dispatch.
+/// inside the game's dispatch.
 /// <para>
 /// Closes go one at a time: a close is sent only when no other close is settling. A close settles for at least
 /// <see cref="SettleFrames"/> frames and <see cref="SettleSeconds"/> seconds, and its popup is looked at every frame

@@ -14,7 +14,7 @@ public interface INoticeOut
 public static class NoticeRoute
 {
     /// <summary>
-    /// Whether the game's own popup or toast stays with the player. False only when a toast stood in for it (a game
+    /// Whether the game's popup or toast stays with the player. False only when a toast stood in for it (a game
     /// toast is then skipped, a popup closed once up); a toast that could not be raised leaves it to the game, and the
     /// history keeps a copy so nothing is lost.
     /// </summary>

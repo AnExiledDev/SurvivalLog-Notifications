@@ -525,7 +525,7 @@
         changed();
     }
 
-    // The game's own words for "day N" when the phone has them, so the time reads like the phone's clock.
+    // The game's words for "day N" when the phone has them, so the time reads like the phone's clock.
     function dayLabel(doc) {
         try {
             var state = doc.getElementById('app')._vnode.component.setupState.state;

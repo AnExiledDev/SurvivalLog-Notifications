@@ -22,7 +22,7 @@ internal static class GameState
         }
     }
 
-    /// <summary>The in-game day and hour, by the game's own clock.</summary>
+    /// <summary>The in-game day and hour, by the game's clock.</summary>
     public static GameStamp? Stamp()
     {
         try

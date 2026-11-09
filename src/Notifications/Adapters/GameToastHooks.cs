@@ -7,7 +7,7 @@ using Notifications.Core;
 namespace Notifications.Adapters;
 
 /// <summary>
-/// The game's own small toasts: short texts such as "not enough stamina", system unlocks and survivor unlocks. Each
+/// The game's small toasts: short texts such as "not enough stamina", system unlocks and survivor unlocks. Each
 /// group either becomes a Toolkit toast (a merge of identical repeats shows one toast with a count), or stays the
 /// game's and gets a copy in the history. An unlock draws its toast through the short-text call, so while an unlock
 /// the game still shows is under way, that inner text is not taken a second time. Static because a Harmony patch has

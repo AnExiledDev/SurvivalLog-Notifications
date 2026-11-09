@@ -174,7 +174,7 @@ internal sealed class PopupCloser
     private static string? ItemsPresentation(ReduxUISystem ui) =>
         ui.GetStateByUI(WebUiOf(PopupKind.Items))?.TryCast<State_Web_RewardList>()?.Presentation?.Value;
 
-    /// <summary>The game's own test for a window that keeps hotkeys from working: any open window Esc can close.</summary>
+    /// <summary>The game's test for a window that keeps hotkeys from working: any open window Esc can close.</summary>
     private string IsModalUp()
     {
         try

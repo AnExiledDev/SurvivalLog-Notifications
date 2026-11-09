@@ -146,7 +146,7 @@ public sealed class DroneAwait
     }
 }
 
-/// <summary>What the mod does with one of the game's own small toasts.</summary>
+/// <summary>What the mod does with one of the game's small toasts.</summary>
 public enum GameToastHandling
 {
     /// <summary>The game shows it and the history does not take it.</summary>

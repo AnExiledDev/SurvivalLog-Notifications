@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Notifications.Core;
 
-/// <summary>The game's own words, as the adapter reads them. Each lookup is null when the game has no text for it.</summary>
+/// <summary>The game's words, as the adapter reads them. Each lookup is null when the game has no text for it.</summary>
 public interface IGameWords
 {
     bool IsChinese { get; }
@@ -22,7 +22,7 @@ public interface IGameWords
 public sealed record NoteStat(string Label, string Value, bool IsUp);
 
 /// <summary>
-/// What each notice says. The game's own localized text comes first, so a toast reads like the popup it stands for;
+/// What each notice says. The game's localized text comes first, so a toast reads like the popup it stands for;
 /// the fallbacks here are used only when the game has no text for a line.
 /// </summary>
 public static class NoteTexts
