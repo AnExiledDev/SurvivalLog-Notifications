@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.8
+
+- Clearer wording in the settings.
+- Made for Survival Log 1.1.20719.
+
 ## 0.4.7
 
 - Now uses Exiled's Toolkit for its shared parts, so it needs Exiled's Toolkit 0.19.0 or newer.
@@ -12,12 +17,12 @@
 
 ## 0.4.5
 
-- Less stutter when a toast stands in for a popup and the popup closes.
+- Less stutter when a toast replaces a popup and that popup closes.
 - Made for Survival Log 1.1.20151.
 
 ## 0.4.4
 
-- The phone opens faster with a long list of notices: it shows the newest ones first and adds more as you scroll down.
+- The phone opens faster with a long list of notices. It shows the newest ones first and loads more as you scroll down.
 - Made for Survival Log 1.1.19611.
 
 ## 0.4.3
@@ -30,38 +35,38 @@
 
 ## 0.4.2
 
-- Less stutter while many notices come in: the phone list and the saved history are updated less often. Nothing is lost; the history is still saved when you leave or quit.
+- Less stutter when many notices come in, because the phone list and the saved history update less often. Nothing is lost, and the history is still saved when you leave or quit.
 - Made for Survival Log 1.1.19611.
 
 ## 0.4.1
 
-- The Notifications icon, its unread count and the newest notices are on the phone the moment it opens, instead of showing up a moment later.
+- The Notifications icon, its unread count and the newest notices show up as soon as you open the phone, instead of a moment later.
 - Made for Survival Log 1.1.19611.
 
 ## 0.4.0
 
-- A "The basket is back" toast when the neighbour's or your companion's basket comes back with her return gifts. It is kept in the phone's Notifications app too. Turn it off with `BasketBack`.
+- New: a "The basket is back" toast shows when your neighbor's or companion's basket comes back with her return gifts. It's kept in the phone's Notifications app too. Turn it off with `BasketBack`.
 
 ## 0.3.0
 
 - The phone list is grouped by game day, with a picture for each notice, and filters for new notices, popups, messages and other mods.
-- Clicking a notice opens it in place: received items with their pictures and amounts, a wish's gains, and an Open popup button when it had one.
-- Each notice stays new until you open it. Mark all read clears them all at once, and Clear list (with a check first) empties the list for this save.
+- Click a notice to see its details, such as received items with their pictures and amounts, or what a wish gave you. Notices that came from a popup have an Open popup button.
+- Each notice stays new until you open it. Mark all read marks every notice as read, and Clear list empties the list for this save after asking first.
 - The phone's home screen shows up to three new notices, with See all to open the list.
 - The app icon is orange and shows how many notices are new.
-- Opening a received-items popup again from the list shows its items. Before, it came up empty.
+- Fixed: opening a received-items popup again from the list showed it empty.
 - Toasts use the new Exiled's Toolkit look, with item pictures and a bar for the time left.
 - Needs Exiled's Toolkit 0.7.0 or newer.
 - Made for Survival Log 1.1.19131.
 
 ## 0.2.2
 
-- With `WaveReport` on, the game no longer stays paused when the wave report becomes a toast, and no Escape is needed to carry on.
+- With `WaveReport` on, the game no longer stays paused when the wave report shows as a toast, so you don't need to press Escape to keep playing.
 - After a game update, Mod Manager can tell you if this mod may need an update.
 
 ## 0.2.1
 
-- The zombie wave report shows as the game's popup by default. As a toast it could leave the game paused as if the report were open, needing Escape twice. `WaveReport` turns the toast back on.
+- The zombie wave report shows as a popup again by default. As a toast it could leave the game paused, and you had to press Escape twice. Turn on `WaveReport` to get the toast back.
 
 ## 0.2.0
 
@@ -73,6 +78,6 @@
 ## 0.1.3
 
 - First release.
-- The game's popups that stop play show as toasts instead, small notices in the corner that close on their own.
+- Popups that stop play show as toasts instead, small notices in the corner that close on their own.
 - Every notice is kept in a Notifications app on your phone.
 - Needs Exiled's Toolkit.
