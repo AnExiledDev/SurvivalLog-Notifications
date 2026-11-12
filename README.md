@@ -56,7 +56,7 @@ How long toasts stay on screen, which corner they use, and whether they show at 
 
 ## Troubleshooting
 
-Check `BepInEx\LogOutput.log` for `===== Notifications 0.4.8 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
+Check `BepInEx\LogOutput.log` for `===== Notifications 0.4.9 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
 
 If a saved list can't be read, the mod renames it with a `.bad` ending in `BepInEx\config\notifications` and starts a new list, so the old one is never written over.
 

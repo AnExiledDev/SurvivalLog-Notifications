@@ -1,4 +1,4 @@
-// Notifications: runs in the game's root web page, above the pages the game draws in iframes. It adds a Notifications
+// Notifications: runs in the game's root web page, above the pages the game shows in iframes. It adds a Notifications
 // app to the phone (the PhoneSMS page): an icon on the phone's dock with the unread count, the newest unread notices on
 // the phone's home screen, and a list of every notice of this save, newest first, with filters. The plugin hands it the
 // list with set(); the player's clicks go back to the plugin as vuplex messages. All text goes on the page with
@@ -184,7 +184,7 @@
         return href.slice(0, href.lastIndexOf('/') + 1) + path;
     }
 
-    // A frame from another origin throws on reading its location; it is not the phone, so it is passed over.
+    // A frame from another origin throws on reading its location; it is not the phone, so it is skipped.
     function phoneIn(frame) {
         var win = frame.contentWindow;
 

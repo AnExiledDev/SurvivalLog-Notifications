@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.9
+
+- Clearer wording on the phone.
+- Made for Survival Log 1.1.20719.
+
 ## 0.4.8
 
 - Clearer wording in the settings.

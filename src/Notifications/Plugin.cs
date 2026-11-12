@@ -16,7 +16,7 @@ namespace Notifications;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.4.8";
+    private const string Version = "0.4.9";
 
     /// <summary>How long quitting waits for the history to reach the disk.</summary>
     private static readonly System.TimeSpan QuitWait = System.TimeSpan.FromSeconds(2);

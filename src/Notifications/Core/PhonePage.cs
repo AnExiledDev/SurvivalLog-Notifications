@@ -47,7 +47,7 @@ public static class PhoneView
         ("no", "Keep", "保留"),
         ("kept", "Kept with this save: {0} of {1}", "随存档保存：{0} / {1}"),
         ("more", "+{0} more", "另有 {0} 种"),
-        ("hintPopup", "Opens the popup as the game showed it", "按游戏原样打开弹窗"),
+        ("hintPopup", "Opens the popup as usual", "正常打开弹窗"),
         ("hintNone", "No popup for this notice", "此通知没有弹窗"),
         ("emptyTitle", "No notices yet", "暂无通知"),
         ("emptyHint", "Popups, game messages and mod notices from this save will show here.", "本存档的弹窗、游戏提示和模组通知都会显示在这里。"),
