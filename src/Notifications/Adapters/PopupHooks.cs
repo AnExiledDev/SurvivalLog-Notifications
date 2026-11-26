@@ -41,8 +41,8 @@ internal static class PopupHooks
         _wave = new SwitchedHook(() => hooks.Patch(typeof(PopupHooks), typeof(LogicAdapter), nameof(LogicAdapter.OnTowerWaveReportReady),
             prefix: nameof(BeforeWave), done: "zombie wave reports become toasts", consequence: "they stay popups"));
 
-        // 0x2822280
-        _skill = new SwitchedHook(() => hooks.Patch(typeof(PopupHooks), typeof(LogicAdapter), nameof(LogicAdapter.OnSkillLevelUpPopupOpen),
+        // 0x2a754b0, the only caller is LogicAdapter.OnSkillLevelUpPopupOpen (0x2a8f200), which jumps here at byte 5.
+        _skill = new SwitchedHook(() => hooks.Patch(typeof(PopupHooks), typeof(Ac_SkillLevelUpPopup_Open), nameof(Ac_SkillLevelUpPopup_Open.SendAction),
             prefix: nameof(BeforeSkill), done: "skill level-up popups become toasts", consequence: "they stay popups"));
     }
 
@@ -107,15 +107,15 @@ internal static class PopupHooks
         });
     }
 
-    private static void BeforeSkill(ProficiencyLevelUpInfo info)
+    private static void BeforeSkill(ProficiencyLevelUpInfo Info)
     {
         if (Reopener.IsReopening || _desk is not { } desk) return;
 
         StandIn(desk, PopupKind.Skill, desk.Switches.SkillLevelUp, () =>
         {
-            if (info == null) return null;
+            if (Info == null) return null;
 
-            var skill = Reopener.SkillOf(info);
+            var skill = Reopener.SkillOf(Info);
 
             return (NoteTexts.Skill(new GameWords(), skill), skill);
         });

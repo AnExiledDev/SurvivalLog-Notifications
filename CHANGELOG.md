@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.10
+
+- The skill level-up toast now hooks a safer spot in the game.
+- Made for Survival Log 1.1.21671.
+
 ## 0.4.9
 
 - Clearer wording on the phone.

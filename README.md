@@ -22,7 +22,7 @@ Notifications adds nothing to your save and does not edit game files. The lists 
 
 ## Requirements
 
-- Survival Log 1.1.20719. A game update can break the mod until it's updated.
+- Survival Log 1.1.21671. A game update can break the mod until it's updated.
 - The [BepInEx Pack for Survival Log](https://www.nexusmods.com/survivallog/mods/12), the BepInEx 6 (IL2CPP) build for the game.
 - **Exiled's Toolkit** 0.19.0 or newer, which draws the toasts and applies changed settings at once. Notifications does not load without it.
 - Optional: [Mod Manager](https://www.nexusmods.com/survivallog/mods/73). With it, you can change every setting in game on its Mods screen and see what each one does, without opening the config file.
@@ -56,7 +56,7 @@ How long toasts stay on screen, which corner they use, and whether they show at 
 
 ## Troubleshooting
 
-Check `BepInEx\LogOutput.log` for `===== Notifications 0.4.9 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
+Check `BepInEx\LogOutput.log` for `===== Notifications 0.4.10 started`. The same lines, and anything that went wrong, are in `BepInEx\notifications.log`, which survives restarts.
 
 If a saved list can't be read, the mod renames it with a `.bad` ending in `BepInEx\config\notifications` and starts a new list, so the old one is never written over.
 
