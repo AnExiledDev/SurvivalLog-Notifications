@@ -25,7 +25,7 @@ public class NoteTextsTests
 
         words.Items[10] = "Wood";
 
-        Assert.Equal(new Note("Game", "Items received", "Wood x3", NoteKind.Success), NoteTexts.Items(words, Make.Items(null, (10, 3))));
+        Assert.Equal(new Note("Game", "Obtained", "Wood x3", NoteKind.Success), NoteTexts.Items(words, Make.Items(null, (10, 3))));
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class NoteTextsTests
 
     [Fact]
     public void TheSameGameToastTwiceIsTheSameNoticeSoTheToolkitMergesIt() =>
-        Assert.Equal(NoteTexts.PopText(true, "体力不足"), NoteTexts.PopText(true, "体力不足"));
+        Assert.Equal(NoteTexts.PopText(true, "精力不足"), NoteTexts.PopText(true, "精力不足"));
 
     [Fact]
     public void AFulfilledWishNamesTheFoodItsRewardsAndItsBuff()
@@ -62,7 +62,42 @@ public class NoteTextsTests
         var note = NoteTexts.Wish(words, new Reopen.Wish(5, 3, 2, 8, 1), "Content");
 
         Assert.Equal("Wish fulfilled", note.Title);
-        Assert.Equal("Finally had the Cake you longed for, Faith +3, Survival points +2, Content", note.Body);
+        Assert.Equal("You ate food you've been craving (Cake), +3 Planning Points, Survival points +2, Content", note.Body);
+    }
+
+    [Theory]
+    [InlineData(false, "+{0} Planning Points", "Planning Points")]
+    [InlineData(true, "信念点+{0}", "信念点")]
+    public void AWishShowsThePlanningPointsLabelWithoutThePlusSign(bool isChinese, string gameText, string label)
+    {
+        var words = new FakeWords(isChinese);
+
+        words.Constants["SR_UI_WishFinished_0"] = gameText;
+
+        Assert.Equal(label, NoteTexts.WishStats(words, new Reopen.Wish(5, 3, 0, 8, 1)).Single().Label);
+    }
+
+    [Theory]
+    [InlineData(false, "Finally did what I'd been wanting to do.", "Finally did what I'd been wanting to do, Contentment")]
+    [InlineData(false, "Finally did it...", "Finally did it..., Contentment")]
+    [InlineData(true, "终于做了一直想做的事。", "终于做了一直想做的事，Contentment")]
+    public void AGameLineEndingInAPeriodJoinsTheNextPartWithoutIt(bool isChinese, string gameText, string body)
+    {
+        var words = new FakeWords(isChinese);
+
+        words.Constants["WishPool_FinishedText"] = gameText;
+
+        Assert.Equal(body, NoteTexts.Wish(words, new Reopen.Wish(0, 0, 0, 8, 1), "Contentment").Body);
+    }
+
+    [Fact]
+    public void AGameLineOnItsOwnKeepsItsPeriod()
+    {
+        var words = new FakeWords();
+
+        words.Constants["WishPool_FinishedText"] = "Finally did what I'd been wanting to do.";
+
+        Assert.Equal("Finally did what I'd been wanting to do.", NoteTexts.Wish(words, new Reopen.Wish(0, 0, 0, 8, 1), null).Body);
     }
 
     [Fact]
@@ -71,7 +106,7 @@ public class NoteTextsTests
         var note = NoteTexts.Wave(new FakeWords(), new Reopen.Wave(4, 30, 2, 1, ""));
 
         Assert.Equal("Wave 4 repelled", note.Title);
-        Assert.Equal("Kills 30, Device wear 2, Door and window wear 1", note.Body);
+        Assert.Equal("Kills 30, Equipment wear 2, Door and window wear 1", note.Body);
     }
 
     [Fact]
@@ -81,7 +116,7 @@ public class NoteTextsTests
 
         var note = NoteTexts.Skill(new FakeWords(), skill);
 
-        Assert.Equal("Skill up Cooking Lv.3", note.Title);
+        Assert.Equal("Proficiency increase Cooking Lv.3", note.Title);
         Assert.Equal("Stew, Soup", note.Body);
     }
 

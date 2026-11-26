@@ -16,7 +16,7 @@ public class BasketReturnTests
     [Fact]
     public void TheBasketToastSaysItIsBackInTheGamesLanguage()
     {
-        Assert.Equal(new Note("Game", "The basket is back", "Her return gifts are in the basket.", NoteKind.Info), NoteTexts.BasketBack(false));
+        Assert.Equal(new Note("Game", "The basket is back", "The return gifts are in the basket.", NoteKind.Info), NoteTexts.BasketBack(false));
         Assert.Equal("篮子回来了", NoteTexts.BasketBack(true).Title);
     }
 

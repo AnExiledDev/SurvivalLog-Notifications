@@ -1,6 +1,6 @@
 namespace Notifications.Core;
 
-/// <summary>The rule for the neighbour's or companion's basket coming back.</summary>
+/// <summary>The rule for the neighbor's or companion's basket coming back.</summary>
 public static class BasketReturn
 {
     /// <summary>

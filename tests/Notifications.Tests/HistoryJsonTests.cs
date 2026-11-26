@@ -43,15 +43,15 @@ public class HistoryJsonTests
     {
         var history = new History();
 
-        history.RecordLocal(new Note("游戏", "体力不足", "body", NoteKind.Warning), Make.T0, null, null);
-        history.RecordLocal(new Note("游戏", "体力不足", "body", NoteKind.Warning), Make.T0.AddSeconds(2), null, null);
+        history.RecordLocal(new Note("游戏", "精力不足", "body", NoteKind.Warning), Make.T0, null, null);
+        history.RecordLocal(new Note("游戏", "精力不足", "body", NoteKind.Warning), Make.T0.AddSeconds(2), null, null);
         history.Record(Make.Toast(5, "later"), null, null);
         history.MarkSeen(1);
 
         var loaded = Load(HistoryJson.Write(history));
         var stamina = loaded.Entries[1];
 
-        Assert.Equal(new Note("游戏", "体力不足", "body", NoteKind.Warning), stamina.Content);
+        Assert.Equal(new Note("游戏", "精力不足", "body", NoteKind.Warning), stamina.Content);
         Assert.Equal(2, stamina.Count);
         Assert.Equal(Make.T0, stamina.FirstUtc);
         Assert.Equal(Make.T0.AddSeconds(2), stamina.LastUtc);

@@ -18,7 +18,7 @@ public interface IGameWords
     string? ItemName(int configId);
 }
 
-/// <summary>One number a popup showed, such as "Kills 38" or "Faith +2". Up is a gain.</summary>
+/// <summary>One number a popup showed, such as "Kills 38" or "Planning Points +2". Up is a gain.</summary>
 public sealed record NoteStat(string Label, string Value, bool IsUp);
 
 /// <summary>
@@ -40,14 +40,14 @@ public static class NoteTexts
 
         if (wish.ItemConfigId > 0)
         {
-            parts.Add(Fill(Word(words, "WishText3", "Finally had the {0} you longed for", "终于吃到了盼望已久的【{0}】"), Name(words, wish.ItemConfigId)));
+            parts.Add(Fill(Word(words, "WishText3", "You ate food you've been craving ({0}).", "终于吃到了盼望已久的【{0}】"), Name(words, wish.ItemConfigId)));
         }
         else
         {
-            parts.Add(Word(words, "WishPool_FinishedText", "Finally did what you always wanted to do.", "终于做了一直想做的事。"));
+            parts.Add(Word(words, "WishPool_FinishedText", "Finally did what I'd been wanting to do.", "终于做了一直想做的事。"));
         }
 
-        if (wish.FaithValue > 0) parts.Add(Fill(Word(words, "SR_UI_WishFinished_0", "Faith +{0}", "信念点+{0}"), Number(wish.FaithValue)));
+        if (wish.FaithValue > 0) parts.Add(Fill(Word(words, "SR_UI_WishFinished_0", "+{0} Planning Points", "信念点+{0}"), Number(wish.FaithValue)));
 
         if (wish.SurvivalValue > 0) parts.Add(Word(words, "SR_Web_WishFinished_2", "Survival points", "生存点") + " +" + Number(wish.SurvivalValue));
 
@@ -61,8 +61,8 @@ public static class NoteTexts
         var title = items.Presentation == "newDish"
             ? Word(words, "SR_RewardList_NewDishTitle", "First time cooked", "初次烹成")
             : items.BumperCount > 0
-                ? Fill(Word(words, "SR_RewardList_BumperTitle", "Bumper harvest x{0}", "丰收 x{0}"), Number(items.BumperCount))
-                : Word(words, "UI_AddItemPop_0", "Items received", "获得物品");
+                ? Fill(Word(words, "SR_RewardList_BumperTitle", "Harvest x{0}", "丰收 x{0}"), Number(items.BumperCount))
+                : Word(words, "UI_AddItemPop_0", "Obtained", "获得物品");
 
         return new Note(Source(words.IsChinese), title, Join(words, new[] { items.Desc, ItemLines(words, items.Stacks) }), NoteKind.Success);
     }
@@ -72,7 +72,7 @@ public static class NoteTexts
         var parts = new List<string?>
         {
             Word(words, "SR_Web_TowerWaveReport_2", "Kills", "击杀") + " " + Number(wave.KillCount),
-            Word(words, "SR_Web_TowerWaveReport_3", "Device wear", "装置损耗") + " " + Number(wave.DeviceDamage),
+            Word(words, "SR_Web_TowerWaveReport_3", "Equipment wear", "装置损耗") + " " + Number(wave.DeviceDamage),
             Word(words, "SR_Web_TowerWaveReport_4", "Door and window wear", "门窗损耗") + " " + Number(wave.StructureDamage),
         };
 
@@ -83,12 +83,12 @@ public static class NoteTexts
         return new Note(Source(words.IsChinese), title, Join(words, parts), NoteKind.Success);
     }
 
-    /// <summary>The level-up popup's own heading and lines: the skill, its new level, then what the level unlocks.</summary>
+    /// <summary>The level-up popup's heading and lines: the skill, its new level, then what the level unlocks.</summary>
     public static Note Skill(IGameWords words, Reopen.Skill skill)
     {
         var name = Plain(Field(skill, "SystemName"));
         var level = Plain(Field(skill, "NewLevel"));
-        var heading = Word(words, "SR_Web_SkillLevelUpPopup_0", "Skill up", "熟练度提升");
+        var heading = Word(words, "SR_Web_SkillLevelUpPopup_0", "Proficiency increase", "熟练度提升");
         var title = string.Join(" ", new[] { heading, name, string.IsNullOrEmpty(level) ? null : "Lv." + level }.Where(part => !string.IsNullOrEmpty(part)));
         var lines = (Field(skill, "UnlockedAbility") ?? "").Split('\n').Select(Plain).ToList();
 
@@ -98,9 +98,9 @@ public static class NoteTexts
     public static Note Drone(IGameWords words, IReadOnlyList<ItemStack> cargo) =>
         new(Source(words.IsChinese), words.IsChinese ? "无人机送货到了" : "Drone delivery arrived", ItemLines(words, cargo), NoteKind.Info);
 
-    /// <summary>The neighbour's or companion's basket came back with her return gifts in it.</summary>
+    /// <summary>The neighbor's or companion's basket came back with return gifts in it.</summary>
     public static Note BasketBack(bool isChinese) =>
-        new(Source(isChinese), isChinese ? "篮子回来了" : "The basket is back", isChinese ? "回礼已经放在篮子里。" : "Her return gifts are in the basket.", NoteKind.Info);
+        new(Source(isChinese), isChinese ? "篮子回来了" : "The basket is back", isChinese ? "回礼已经放在篮子里。" : "The return gifts are in the basket.", NoteKind.Info);
 
     /// <summary>A game toast's text as one line, or null when nothing is left to show.</summary>
     public static Note? PopText(bool isChinese, string? text) =>
@@ -117,8 +117,8 @@ public static class NoteTexts
     /// <summary>The wish popup's first line: the item longed for, or the thing done.</summary>
     public static string WishLine(IGameWords words, Reopen.Wish wish) =>
         wish.ItemConfigId > 0
-            ? Fill(Word(words, "WishText3", "Finally had the {0} you longed for", "终于吃到了盼望已久的【{0}】"), Name(words, wish.ItemConfigId))
-            : Word(words, "WishPool_FinishedText", "Finally did what you always wanted to do.", "终于做了一直想做的事。");
+            ? Fill(Word(words, "WishText3", "You ate food you've been craving ({0}).", "终于吃到了盼望已久的【{0}】"), Name(words, wish.ItemConfigId))
+            : Word(words, "WishPool_FinishedText", "Finally did what I'd been wanting to do.", "终于做了一直想做的事。");
 
     public static IReadOnlyList<NoteStat> WishStats(IGameWords words, Reopen.Wish wish)
     {
@@ -126,7 +126,7 @@ public static class NoteTexts
 
         if (wish.FaithValue > 0)
         {
-            var faith = Fill(Word(words, "SR_UI_WishFinished_0", "Faith +{0}", "信念点+{0}"), "").Trim().TrimEnd('+').Trim();
+            var faith = Fill(Word(words, "SR_UI_WishFinished_0", "+{0} Planning Points", "信念点+{0}"), "").Trim().Trim('+').Trim();
 
             stats.Add(new NoteStat(faith, "+" + Number(wish.FaithValue), true));
         }
@@ -139,7 +139,7 @@ public static class NoteTexts
     public static IReadOnlyList<NoteStat> WaveStats(IGameWords words, Reopen.Wave wave) => new[]
     {
         new NoteStat(Word(words, "SR_Web_TowerWaveReport_2", "Kills", "击杀"), Number(wave.KillCount), false),
-        new NoteStat(Word(words, "SR_Web_TowerWaveReport_3", "Device wear", "装置损耗"), Number(wave.DeviceDamage), false),
+        new NoteStat(Word(words, "SR_Web_TowerWaveReport_3", "Equipment wear", "装置损耗"), Number(wave.DeviceDamage), false),
         new NoteStat(Word(words, "SR_Web_TowerWaveReport_4", "Door and window wear", "门窗损耗"), Number(wave.StructureDamage), false),
     };
 
@@ -185,12 +185,24 @@ public static class NoteTexts
 
     private static string? Field(Reopen.Skill skill, string name) => skill.Fields.TryGetValue(name, out var value) ? value : null;
 
-    private static string? Join(IGameWords words, IEnumerable<string?> parts)
+    /// <summary>
+    /// The parts that have text, on one line with commas. A part that ends in a period loses it when another part follows,
+    /// so "Done." and "+3" read "Done, +3".
+    /// </summary>
+    public static string? Join(IGameWords words, IEnumerable<string?> parts)
     {
-        var kept = parts.Select(Plain).Where(part => !string.IsNullOrEmpty(part)).ToList();
+        var kept = parts.Select(Plain).OfType<string>().Where(part => part.Length > 0).ToList();
 
-        return kept.Count == 0 ? null : string.Join(words.IsChinese ? "，" : ", ", kept);
+        if (kept.Count == 0) return null;
+
+        var lines = kept.Select((part, i) => i < kept.Count - 1 ? WithoutPeriod(part) : part);
+
+        return string.Join(words.IsChinese ? "，" : ", ", lines);
     }
+
+    /// <summary>The text without one closing period, English or Chinese. An ellipsis ("...") keeps its dots.</summary>
+    private static string WithoutPeriod(string text) =>
+        text.EndsWith('。') || (text.EndsWith('.') && !text.EndsWith("..", StringComparison.Ordinal)) ? text[..^1] : text;
 
     private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
 }

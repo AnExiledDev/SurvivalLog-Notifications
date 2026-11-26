@@ -9,7 +9,7 @@ How long toasts stay on screen and where they appear are set in Exiled's Toolkit
 | Setting | Default | What it does |
 | --- | --- | --- |
 | `WishFulfilled` | `true` | Show a toast instead of the popup when a wish comes true. Click the toast, or its entry in the phone's Notifications app, to open the popup. |
-| `ItemsReceived` | `true` | Show a toast instead of the received-items popup (bumper harvests, first-time dishes, rewards). Click it to open the popup. The small pickup messages that fade on their own don't change. The item pickup window with Pick All is never changed. |
+| `ItemsReceived` | `true` | Show a toast instead of the received-items popup (bumper harvests, first-time dishes, rewards). Click it to open the popup. The small pickup messages that fade on their own don't change. The item pickup window with "Take All" is never changed. |
 | `WaveReport` | `false` | Show a toast instead of the zombie wave report. Click it to open the report. Off by default, so the wave report shows as a popup. |
 | `SkillLevelUp` | `true` | Show a toast instead of the skill level-up popup. Click it to open the popup. |
 | `DroneDelivery` | `true` | When a drone comes home, show a "Drone delivery arrived" toast instead of the unload popup. Click it to open the popup. |
@@ -29,6 +29,6 @@ Set one to `false` to get that popup back. Popups you switch off here are not ke
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `BasketBack` | `true` | Show a "The basket is back" toast when your neighbor's or companion's basket comes back with her return gifts, and keep it in the phone list. |
+| `BasketBack` | `true` | Show a "The basket is back" toast when your neighbor's or companion's basket comes back with return gifts, and keep it in the phone list. |
 
 Every message these settings turn on goes into the phone's Notifications app, whether it shows as a toast or the usual way. If you set `PopText`, `SystemUnlock` or `CharacterUnlock` to `false`, the game shows that kind of message as usual and it stays out of the list.

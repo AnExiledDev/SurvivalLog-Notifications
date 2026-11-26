@@ -120,10 +120,28 @@ public class PhoneViewTests
         var row = Rows(PhoneView.Json(history, words, null))[0];
         var stats = row.GetProperty("stats").EnumerateArray().ToList();
 
-        Assert.Equal("Finally had the Hot pot you longed for, Content", row.GetProperty("body").GetString());
-        Assert.Equal(new[] { "Faith", "Survival points" }, stats.Select(stat => stat.GetProperty("label").GetString()));
+        Assert.Equal("You ate food you've been craving (Hot pot), Content", row.GetProperty("body").GetString());
+        Assert.Equal(new[] { "Planning Points", "Survival points" }, stats.Select(stat => stat.GetProperty("label").GetString()));
         Assert.Equal(new[] { "+3", "+2" }, stats.Select(stat => stat.GetProperty("value").GetString()));
         Assert.All(stats, stat => Assert.True(stat.GetProperty("up").GetBoolean()));
+    }
+
+    [Fact]
+    public void AWishRowShowsTheGamesEnglishWithoutAStrayPeriodOrPlusSign()
+    {
+        var history = new History();
+        var words = new FakeWords();
+
+        words.Items[5] = "Hot pot";
+        words.Buffs[7] = "Contentment";
+        words.Constants["WishText3"] = "You ate food you've been craving ({0}).";
+        words.Constants["SR_UI_WishFinished_0"] = "+{0} Planning Points";
+        history.Record(Make.Toast(1, "Wish Fulfilled"), null, new Reopen.Wish(5, 3, 0, 7, 1));
+
+        var row = Rows(PhoneView.Json(history, words, null))[0];
+
+        Assert.Equal("You ate food you've been craving (Hot pot), Contentment", row.GetProperty("body").GetString());
+        Assert.Equal("Planning Points", row.GetProperty("stats")[0].GetProperty("label").GetString());
     }
 
     [Fact]
@@ -148,7 +166,7 @@ public class PhoneViewTests
         Assert.Equal(1, view.RootElement.GetProperty("kept").GetInt32());
         Assert.Equal(History.Cap, view.RootElement.GetProperty("cap").GetInt32());
         Assert.Equal(12, view.RootElement.GetProperty("today").GetInt32());
-        Assert.Equal("Kept with this save: {0} of {1}", view.RootElement.GetProperty("text").GetProperty("kept").GetString());
+        Assert.Equal("Notices for this save: {0} of {1}", view.RootElement.GetProperty("text").GetProperty("kept").GetString());
     }
 
     [Fact]

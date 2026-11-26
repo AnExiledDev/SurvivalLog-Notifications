@@ -1,8 +1,16 @@
 # Changelog
 
+## 0.4.11
+
+- Fixed: in English, a wish on the phone showed an extra plus sign before Planning Points.
+- Fixed: some toasts and phone notices showed a period right before a comma.
+- Fixed: the basket toast said "her" even when the basket was your companion's.
+- Clearer wording on the phone and in the settings.
+- Made for Survival Log 1.1.21671.
+
 ## 0.4.10
 
-- The skill level-up toast now hooks a safer spot in the game.
+- Fixed a possible crash when the skill level-up popup opens.
 - Made for Survival Log 1.1.21671.
 
 ## 0.4.9
@@ -17,7 +25,7 @@
 
 ## 0.4.7
 
-- Now uses Exiled's Toolkit for its shared parts, so it needs Exiled's Toolkit 0.19.0 or newer.
+- Needs Exiled's Toolkit 0.19.0 or newer.
 - Made for Survival Log 1.1.20719.
 
 ## 0.4.6
@@ -45,7 +53,7 @@
 
 ## 0.4.2
 
-- Less stutter when many notices come in, because the phone list and the saved history update less often. Nothing is lost, and the history is still saved when you leave or quit.
+- Less stutter when many notices come in. Nothing is lost, and the list is still saved when you leave or quit.
 - Made for Survival Log 1.1.19611.
 
 ## 0.4.1
@@ -55,14 +63,14 @@
 
 ## 0.4.0
 
-- New: a "The basket is back" toast shows when your neighbor's or companion's basket comes back with her return gifts. It's kept in the phone's Notifications app too. Turn it off with `BasketBack`.
+- New: a "The basket is back" toast shows when your neighbor's or companion's basket comes back with return gifts. It's kept in the phone's Notifications app too. Turn it off with `BasketBack`.
 
 ## 0.3.0
 
 - The phone list is grouped by game day, with a picture for each notice, and filters for new notices, popups, messages and other mods.
-- Click a notice to see its details, such as received items with their pictures and amounts, or what a wish gave you. Notices that came from a popup have an Open popup button.
-- Each notice stays new until you open it. Mark all read marks every notice as read, and Clear list empties the list for this save after asking first.
-- The phone's home screen shows up to three new notices, with See all to open the list.
+- Click a notice to see its details, such as received items with their pictures and amounts, or what a wish gave you. Notices that came from a popup have an "Open popup" button.
+- Each notice stays new until you open it. "Mark all read" marks every notice as read. "Clear list" asks first, then empties the list for this save.
+- The phone's home screen shows up to three new notices, with "See all" to open the list.
 - The app icon is orange and shows how many notices are new.
 - Fixed: opening a received-items popup again from the list showed it empty.
 - Toasts use the new Exiled's Toolkit look, with item pictures and a bar for the time left.

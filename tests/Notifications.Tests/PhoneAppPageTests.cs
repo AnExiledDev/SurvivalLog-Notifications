@@ -107,7 +107,7 @@ public class PhoneAppPageTests
     }
 
     [Fact]
-    public void AWishShowsItsFaithAndSurvivalGainsAsStats()
+    public void AWishShowsItsPlanningPointsAndSurvivalGainsAsStats()
     {
         var page = PageScript.WithPhone();
         var history = new History();
@@ -116,7 +116,7 @@ public class PhoneAppPageTests
         page.Install(history);
         page.Click(".is-slnotify");
 
-        Assert.Equal(new[] { "Faith +3", "Survival points +2" }, page.Texts(".slnotify-row .sn-stat.sn-up"));
+        Assert.Equal(new[] { "Planning Points +3", "Survival points +2" }, page.Texts(".slnotify-row .sn-stat.sn-up"));
     }
 
     [Fact]
@@ -319,7 +319,7 @@ public class PhoneAppPageTests
         page.Install(history);
         page.Click(".is-slnotify");
 
-        Assert.Equal("Kept with this save: 1 of " + History.Cap + " Clear list", page.TextAt(".sn-foot"));
+        Assert.Equal("Notices for this save: 1 of " + History.Cap + " Clear list", page.TextAt(".sn-foot"));
 
         page.Click(".sn-clear");
 

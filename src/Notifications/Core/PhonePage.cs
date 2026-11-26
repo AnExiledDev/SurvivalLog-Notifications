@@ -31,7 +31,7 @@ public static class PhoneView
     private static readonly (string Key, string English, string Chinese)[] Words =
     {
         ("title", "Notifications", "通知"),
-        ("new", "new", "条新"),
+        ("new", "new", "条未读"),
         ("all", "All", "全部"),
         ("unread", "New", "未读"),
         ("popup", "Popups", "弹窗"),
@@ -45,7 +45,7 @@ public static class PhoneView
         ("clearAsk", "Clear the list?", "清空列表？"),
         ("yes", "Clear", "清空"),
         ("no", "Keep", "保留"),
-        ("kept", "Kept with this save: {0} of {1}", "随存档保存：{0} / {1}"),
+        ("kept", "Notices for this save: {0} of {1}", "本存档的通知：{0} / {1}"),
         ("more", "+{0} more", "另有 {0} 种"),
         ("hintPopup", "Opens the popup as usual", "正常打开弹窗"),
         ("hintNone", "No popup for this notice", "此通知没有弹窗"),
@@ -194,7 +194,7 @@ public static class PhoneView
     /// </summary>
     private static string? Body(HistoryEntry entry, IViewWords words) => entry.Reopen switch
     {
-        Reopen.Wish wish => Joined(words, NoteTexts.WishLine(words, wish), words.BuffName(wish.BuffId)),
+        Reopen.Wish wish => NoteTexts.Join(words, new[] { NoteTexts.WishLine(words, wish), words.BuffName(wish.BuffId) }),
         Reopen.Items items => NoteTexts.Plain(items.Desc),
         Reopen.Wave wave => NoteTexts.WaveSupplies(words, wave),
         _ => entry.Content.Body,
@@ -206,13 +206,6 @@ public static class PhoneView
         Reopen.Items { Stacks.Count: > 0 } items => words.ItemIcon(items.Stacks[0].ConfigId) ?? entry.Icon,
         _ => entry.Icon,
     };
-
-    private static string? Joined(IGameWords words, params string?[] parts)
-    {
-        var kept = parts.Select(NoteTexts.Plain).Where(part => !string.IsNullOrEmpty(part)).ToList();
-
-        return kept.Count == 0 ? null : string.Join(words.IsChinese ? "，" : ", ", kept);
-    }
 
     private sealed class NoWords : IViewWords
     {

@@ -7,7 +7,7 @@ using Notifications.Core;
 namespace Notifications.Adapters;
 
 /// <summary>
-/// The neighbour's or companion's basket coming back raises "The basket is back". The game shows no popup for it,
+/// The neighbor's or companion's basket coming back raises "The basket is back". The game shows no popup for it,
 /// only a text message on the phone, so this is a new toast and not a replacement. Static because a Harmony patch has
 /// nowhere else to look.
 /// </summary>
@@ -21,7 +21,7 @@ internal static class BasketHooks
     {
         _desk = desk;
 
-        // 0x27260f0; the settle that puts her return gifts in the basket, run when the return timeline ends or on the
+        // 0x27260f0; the settle that puts the return gifts in the basket, run when the return timeline ends or on the
         // next hour. Private, so it is found by name.
         _settle = new SwitchedHook(() => hooks.Patch(typeof(BasketHooks), typeof(NeighborBasketReturnManager), "SettleReturn",
             prefix: nameof(BeforeSettle), postfix: nameof(AfterSettle), done: "basket returns raise a toast", consequence: "a returning basket shows no toast"));

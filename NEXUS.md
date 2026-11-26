@@ -11,14 +11,14 @@ Survival Log stops play with a popup for many things that only need a glance: a 
 [*][b]Popups become toasts[/b]: wishes coming true, items received, skill level-ups and drone deliveries show a toast instead of stopping play. You can switch each one back to a popup. The zombie wave report still shows as a popup unless you turn on WaveReport.[/*]
 [*][b]Click to open[/b]: click a toast to open the popup it replaced, with everything that popup would have shown.[/*]
 [*][b]Short messages and unlocks[/b]: the game's short messages, system unlocks and new survivor unlocks show as toasts, which are bigger and stay on screen longer. You can also let the game show them as usual and still keep a copy on the phone.[/*]
-[*][b]Basket return[/b]: you get a toast when your neighbor's or companion's basket comes back with her return gifts. Without the mod, the game only sends a text message.[/*]
+[*][b]Basket return[/b]: you get a toast when your neighbor's or companion's basket comes back with return gifts. Without the mod, the game only sends a text message.[/*]
 [*][b]Repeated messages merge[/b]: when the same message comes several times in a row, you get one toast with a count (x2, x3, ...) instead of a stack of copies.[/*]
 [*][b]Phone app[/b]: a Notifications app on the phone lists every notice from the current save, newest first and grouped by game day, with the hour. Filters let you show only new notices, popups, messages, or notices from other mods. The app icon shows how many notices are new, and the home screen shows the newest three.[/*]
-[*][b]Details in the list[/b]: click a notice in the list to see its details, such as the items you got and how many, or what a wish gave you. If the notice came from a popup, Open popup shows that popup again.[/*]
-[*][b]Read and clear[/b]: a notice stays new until you open it. Mark all read marks every notice as read, and Clear list empties the list for this save after asking you first.[/*]
-[*][b]Kept with your save[/b]: each save has a separate list that keeps the newest 500 notices, and it comes back when you load that save again.[/*]
+[*][b]Details in the list[/b]: click a notice in the list to see its details, such as the items you got and how many, or what a wish gave you. If the notice came from a popup, "Open popup" shows that popup again.[/*]
+[*][b]Read and clear[/b]: a notice stays new until you open it. "Mark all read" marks every notice as read. "Clear list" asks first, then empties the list for this save.[/*]
+[*][b]One list per save[/b]: each save has its own list, which keeps the newest 500 notices. Load that save again and its list is still there.[/*]
 [/list]
-Popups that ask you to choose something, such as events and the item pickup window with Pick All, are never changed.
+Popups that ask you to choose something, such as events and the item pickup window with "Take All", are never changed.
 
 Notifications adds nothing to your save and does not edit game files. The lists are kept in separate files next to the mod's settings. You can remove the mod at any time.
 
@@ -26,9 +26,8 @@ Works in English and Chinese.
 
 [size=5]Known issues[/size]
 [list]
-[*]After a restart, a notice in the list can open its popup again only if the mod saved enough to rebuild that popup.[/*]
 [*]A notice from another mod can only be opened until you quit the game.[/*]
-[*]When some of a drone's cargo does not fit, that cargo stays in the drone as before, and the toast has no popup to open.[/*]
+[*]When some of a drone's cargo does not fit, the extra stays in the drone, the same as without the mod, and the toast has no popup to open.[/*]
 [*]The list starts empty for saves played before the mod was installed.[/*]
 [/list]
 
@@ -76,12 +75,12 @@ Survival Log 会为许多只需看一眼的事情弹出窗口、打断游戏：�
 [*][b]简短提示和解锁[/b]：游戏的简短提示、系统解锁和新幸存者解锁都改为提示显示，字更大，停留更久。也可以照常由游戏显示，同时在手机上留一份记录。[/*]
 [*][b]篮子回来了[/b]：邻居或同行者的「篮子」带着回礼回来时显示提示。不装模组时，游戏只会发一条短信。[/*]
 [*][b]重复合并[/b]：同一条提示连续出现多次时，只显示一条提示并带上次数（x2、x3 等），不会堆成一串。[/*]
-[*][b]手机应用[/b]：手机上的「通知」应用列出当前存档的每条通知，最新的在前，按游戏日期分组，并显示时刻。可以筛选只看新通知、弹窗、消息或其他模组的通知。图标上显示新通知的数量，主屏幕上显示最新的三条。[/*]
+[*][b]手机应用[/b]：手机上的「通知」应用列出当前存档的每条通知，最新的在前，按游戏日期分组，并显示时刻。可以筛选只看新通知、弹窗、简短提示或其他模组的通知。图标上显示新通知的数量，主屏幕上显示最新的三条。[/*]
 [*][b]在列表里看详情[/b]：点击列表中的通知可以查看详情，例如获得了哪些物品、各多少，或者愿望带来了什么。如果通知来自弹窗，点「打开弹窗」可以再次显示那个弹窗。[/*]
 [*][b]已读与清空[/b]：通知在你打开之前一直算作新通知。「全部已读」把所有通知标为已读，「清空列表」会先问你，然后清空本存档的列表。[/*]
-[*][b]随存档保存[/b]：每个存档有自己的列表，保留最新的 500 条通知，再次读取该存档时会回来。[/*]
+[*][b]每个存档一份列表[/b]：每个存档有自己的列表，保留最新的 500 条通知。再次读取这个存档时，列表还在。[/*]
 [/list]
-需要你做选择的弹窗，例如事件和带有全部拾取按钮的拾取窗口，永远不会被改动。
+需要你做选择的弹窗，例如事件和带有「全部拾取」按钮的拾取窗口，都不会被改动。
 
 Notifications 不会往存档里写入任何内容，也不会修改游戏文件。列表单独保存在模组设置旁边的文件里。你可以随时移除这个模组。
 
@@ -89,9 +88,8 @@ Notifications 不会往存档里写入任何内容，也不会修改游戏文件
 
 [size=5]已知问题[/size]
 [list]
-[*]重启游戏后，只有模组保存了足够的内容来重建弹窗时，列表里的通知才能再次打开它。[/*]
 [*]其他模组的通知只能在退出游戏之前打开。[/*]
-[*]无人机的部分货物放不下时，会像以前一样留在无人机里，此时提示没有可打开的弹窗。[/*]
+[*]无人机的货物有一部分放不下时，多出的货物会留在无人机里，和不装模组时一样，此时提示没有可打开的弹窗。[/*]
 [*]安装模组之前玩过的存档，列表从空开始。[/*]
 [/list]
 
@@ -101,8 +99,8 @@ Notifications 不会往存档里写入任何内容，也不会修改游戏文件
 [list]
 [*]Survival Log 1.1.21671。游戏更新后模组可能暂时失效，直到模组更新为止。[/*]
 [*][url=https://www.nexusmods.com/survivallog/mods/12]BepInEx for Survival Log[/url]，请先安装。[/*]
-[*]Exiled's Toolkit 0.19.0 或更新版本，用于显示通知，并让改动的设置立即生效。没有它，Notifications 无法加载。[/*]
-[*]可选：[url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url]。装了它，可以在游戏里它的「模组」界面修改每项设置，并看到每项的说明，不用打开配置文件。[/*]
+[*]Exiled's Toolkit 0.19.0 或更新版本，用于显示提示，并让改动的设置立即生效。没有它，Notifications 无法加载。[/*]
+[*]可选：[url=https://www.nexusmods.com/survivallog/mods/73]Mod Manager[/url]。装了它，可以在游戏里用它的「模组」界面修改每项设置，并看到每项的说明，不用打开配置文件。[/*]
 [/list]
 
 [size=5]安装[/size]

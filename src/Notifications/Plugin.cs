@@ -16,7 +16,7 @@ namespace Notifications;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.4.10";
+    private const string Version = "0.4.11";
 
     /// <summary>How long quitting waits for the history to reach the disk.</summary>
     private static readonly System.TimeSpan QuitWait = System.TimeSpan.FromSeconds(2);
@@ -94,7 +94,7 @@ public sealed class Plugin : BasePlugin
             "Let the game show its short messages and unlocks as usual, and only copy them into the phone's Notifications app. When this is off, they show as toasts instead, and Exiled's Toolkit's Seconds setting decides how long they stay on screen (7 seconds by default).\n" +
             "简短提示和解锁照常由游戏显示，只把它们记入手机「通知」。关闭时改为提示显示，停留时间由 Exiled's Toolkit 的 Seconds 设置决定（默认 7 秒）。"),
         Config.Bind("Basket", "BasketBack", true,
-            "Show a \"The basket is back\" toast when your neighbor's or companion's basket comes back with her return gifts, and keep it in the phone's Notifications app.\n" +
+            "Show a \"The basket is back\" toast when your neighbor's or companion's basket comes back with return gifts, and keep it in the phone's Notifications app.\n" +
             "邻居或同行者的「篮子」带着回礼回来时显示「篮子回来了」提示，并记入手机「通知」。"),
     };
 
