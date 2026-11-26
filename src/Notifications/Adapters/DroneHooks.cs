@@ -2,8 +2,8 @@ using System;
 using GameCore.HotUpdate;
 using GameCore.HotUpdate.Battle.Logic;
 using ExiledToolkit.Game;
+using ExiledToolkit.Kit;
 using Notifications.Core;
-using UnityEngine;
 
 namespace Notifications.Adapters;
 
@@ -44,7 +44,7 @@ internal static class DroneHooks
 
         try
         {
-            if (Await.Claim(items, ConstantTextTools.ToConstantTextOrEmpty(UnloadDescId), Time.unscaledTime) is not { } arrival) return false;
+            if (Await.Claim(items, ConstantTextTools.ToConstantTextOrEmpty(UnloadDescId), Clock.Now) is not { } arrival) return false;
 
             if (arrival.ToastId != 0) desk.Attach(arrival.ToastId, items);
 
@@ -74,7 +74,7 @@ internal static class DroneHooks
 
             var cargo = DroneCargo.Parse(trip.CargoJson);
 
-            if (cargo.Count > 0) _settling = Await.Expect(cargo, Time.unscaledTime);
+            if (cargo.Count > 0) _settling = Await.Expect(cargo, Clock.Now);
         }
         catch (Exception ex)
         {

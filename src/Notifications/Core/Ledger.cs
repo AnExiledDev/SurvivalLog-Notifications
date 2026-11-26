@@ -33,7 +33,7 @@ public sealed class Ledger
     /// <summary>Changes whenever what the phone shows would change.</summary>
     public long Revision { get; private set; }
 
-    /// <summary>Called every frame with where the game is.</summary>
+    /// <summary>Called with where the game is, whenever that may have changed and before each notice is kept.</summary>
     public void Follow(bool isInGame, string? saveKey, double now)
     {
         if (!isInGame)
@@ -50,7 +50,7 @@ public sealed class Ledger
             return;
         }
 
-        // Called every frame with the same key, so the name is worked out only when the key changes.
+        // Often called with the same key, so the name is worked out only when the key changes.
         if (saveKey != _lastSaveKey)
         {
             _lastSaveKey = saveKey;

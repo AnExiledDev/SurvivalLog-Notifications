@@ -32,11 +32,15 @@ internal sealed class HistoryFiles : IHistoryStore
     {
         Settle(ReadWait);
 
+        // Read straight away rather than asking File.Exists first: it answers false for a file that is there but can't
+        // be opened, and the history would then be saved over it.
         try
         {
-            var path = PathOf(fileName);
-
-            return File.Exists(path) ? new StoredText.Found(File.ReadAllText(path, Utf8)) : new StoredText.Missing();
+            return new StoredText.Found(File.ReadAllText(PathOf(fileName), Utf8));
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return new StoredText.Missing();
         }
         catch (Exception ex)
         {

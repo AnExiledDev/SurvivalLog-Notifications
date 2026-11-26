@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ExiledToolkit.Game;
+using ExiledToolkit.Kit;
 using GameCore.HotUpdate;
 using GameCore.HotUpdate.ReduxUI;
 using Il2CppInterop.Runtime;
 using Notifications.Core;
-using UnityEngine;
 
 namespace Notifications.Adapters;
 
@@ -33,14 +33,17 @@ internal sealed class PopupCloser
     }
 
     /// <summary>A toast stood in for this popup, which the game is opening now.</summary>
-    public void CloseOnceOpen(PopupKind kind) => _pending.Expect(kind, Time.frameCount, Time.unscaledTime);
+    public void CloseOnceOpen(PopupKind kind) => _pending.Expect(kind, UnityFrame.Count(), Clock.Now);
 
     /// <summary>The popup stays up for the player. Whether a close was pending.</summary>
     public bool KeepOpen(PopupKind kind) => _pending.Cancel(kind);
 
     public void Tick()
     {
-        var steps = _pending.Due(Time.frameCount, Time.unscaledTime, _sight);
+        // Nearly always idle, and then there is no need to read the frame number or the clock.
+        if (_pending.IsIdle) return;
+
+        var steps = _pending.Due(UnityFrame.Count(), Clock.Now, _sight);
 
         for (var i = 0; i < steps.Count; i++)
         {

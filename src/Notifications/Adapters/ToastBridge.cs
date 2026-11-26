@@ -3,6 +3,7 @@ using System.Linq;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using ExiledToolkit;
+using ExiledToolkit.Kit;
 using Notifications.Core;
 
 namespace Notifications.Adapters;
@@ -17,14 +18,16 @@ internal sealed class ToastBridge
     private const string ToolkitGuid = "com.dev.survivallog.exiledtoolkit";
 
     private readonly Ledger _ledger;
+    private readonly SaveFollower _save;
     private readonly Action<string> _log;
     private readonly ToastWait _waiting = new();
     private ConfigEntry<bool>? _toastsShown;
     private bool _hasLookedForSetting;
 
-    public ToastBridge(Ledger ledger, Action<string> log)
+    public ToastBridge(Ledger ledger, SaveFollower save, Action<string> log)
     {
         _ledger = ledger;
+        _save = save;
         _log = log;
     }
 
@@ -84,6 +87,7 @@ internal sealed class ToastBridge
             Icon = record.Icon,
         };
 
+        _save.BeforeNotice(Clock.Now);
         _ledger.Record(note, GameState.Stamp(), reopen);
     }
 

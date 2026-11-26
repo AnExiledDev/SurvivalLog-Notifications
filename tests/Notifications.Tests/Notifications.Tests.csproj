@@ -11,9 +11,10 @@
     <ToolkitSrc>$([System.IO.Path]::GetDirectoryName($([System.IO.Path]::GetDirectoryName($([System.IO.Path]::GetDirectoryName('$(ToolkitDll)'))))))</ToolkitSrc>
   </PropertyGroup>
 
-  <!-- The pure core is compiled straight in, so the tests need none of the game, BepInEx or Toolkit assemblies. -->
+  <!-- The pure core and the history files are compiled straight in, so the tests need none of the game, BepInEx or Toolkit assemblies. -->
   <ItemGroup>
     <Compile Include="..\..\src\Notifications\Core\*.cs" Link="Core\%(Filename)%(Extension)" />
+    <Compile Include="..\..\src\Notifications\Adapters\HistoryFiles.cs" Link="Adapters\HistoryFiles.cs" />
   </ItemGroup>
 
   <!-- The page script, as the plugin ships it, run in Jint with the Toolkit's page API against a fake page. -->

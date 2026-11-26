@@ -16,7 +16,7 @@ namespace Notifications;
 public sealed class Plugin : BasePlugin
 {
     private const string Guid = "com.dev.survivallog.notifications";
-    private const string Version = "0.4.11";
+    private const string Version = "0.4.12";
 
     /// <summary>How long quitting waits for the history to reach the disk.</summary>
     private static readonly System.TimeSpan QuitWait = System.TimeSpan.FromSeconds(2);
@@ -28,15 +28,17 @@ public sealed class Plugin : BasePlugin
         var log = new ModLog(Log, "notifications.log");
         var files = new HistoryFiles(Path.Combine(Paths.ConfigPath, "notifications"));
         var ledger = new Ledger(files, log.Write);
-        var bridge = new ToastBridge(ledger, log.Write);
+        var save = new SaveFollower(ledger, new GamePlayState(), log.Write);
+        var bridge = new ToastBridge(ledger, save, log.Write);
         var closer = new PopupCloser(log.Write, log.WriteFileOnly);
         var hooks = new PatchKit(new Harmony(Guid), log.Write);
-        var desk = new NoticeDesk(switches, ledger, bridge, closer, hooks, log.Write);
+        var desk = new NoticeDesk(switches, ledger, save, bridge, closer, hooks, log.Write);
 
         log.Write($"===== Notifications {Version} started");
 
         NoteIcons.StartScan();
         Toasts.Raised += bridge.OnRaised;
+        StartHook.Apply(hooks, save);
         PopupHooks.Apply(hooks, desk);
         DroneHooks.Apply(hooks, desk);
         BasketHooks.Apply(hooks, desk);
@@ -56,6 +58,7 @@ public sealed class Plugin : BasePlugin
 
         NoteTicker.Log = log.Write;
         NoteTicker.Ledger = ledger;
+        NoteTicker.Follower = save;
         NoteTicker.Phone = new PhoneApp(ledger, desk, log.Write);
         NoteTicker.Closer = closer;
         NoteTicker.Settle = () => files.Settle(QuitWait);

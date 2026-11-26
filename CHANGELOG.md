@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.12
+
+- If a notification history file is there but can't be opened, Notifications now leaves it alone and says so in the log. Before, it could treat the file as missing and save a new history over it.
+- Notifications does a little less work while you play.
+- Made for Survival Log 1.1.21671.
+
 ## 0.4.11
 
 - Fixed: in English, a wish on the phone showed an extra plus sign before Planning Points.

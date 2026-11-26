@@ -1,21 +1,22 @@
 using System;
 using System.Collections.Generic;
-using ExiledToolkit.Game;
+using ExiledToolkit.Kit;
 using Notifications.Core;
 using UnityEngine;
 
 namespace Notifications.Adapters;
 
 /// <summary>
-/// Each frame: follows which save is loaded, writes the history when it is due, talks to the phone app, and closes the
-/// popups a toast stood in for. A failure is logged the first time it is seen and the next frame carries on. Each step
-/// is called directly rather than through a delegate, so a frame allocates nothing here.
+/// Each frame: follows which save is in play when it may have changed, writes the history when it is due, talks to the
+/// phone app, and closes the popups a toast stood in for. A failure is logged the first time it is seen and the next
+/// frame carries on. Each step is called directly rather than through a delegate, so a frame allocates nothing here.
 /// </summary>
 public sealed class NoteTicker : MonoBehaviour
 {
     private const int MostFailuresLogged = 20;
 
     internal static Ledger? Ledger;
+    internal static SaveFollower? Follower;
     internal static PhoneApp? Phone;
     internal static PopupCloser? Closer;
     internal static Action<string> Log = _ => { };
@@ -31,19 +32,22 @@ public sealed class NoteTicker : MonoBehaviour
 
     private void Update()
     {
-        var now = (double)Time.unscaledTime;
+        var now = Clock.Now;
 
-        if (Ledger is { } ledger)
+        if (Follower is { } follower)
         {
             try
             {
-                ledger.Follow(GameState.IsInGame(), SaveSlot.CurrentKey(), now);
+                follower.Tick(now);
             }
             catch (Exception ex)
             {
                 Report("following the save", ex);
             }
+        }
 
+        if (Ledger is { } ledger)
+        {
             try
             {
                 ledger.Flush(now);
@@ -83,7 +87,7 @@ public sealed class NoteTicker : MonoBehaviour
     {
         try
         {
-            if (Ledger is { } ledger) ledger.Flush(Time.unscaledTime, true);
+            if (Ledger is { } ledger) ledger.Flush(Clock.Now, true);
 
             Settle();
         }

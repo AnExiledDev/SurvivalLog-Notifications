@@ -1,6 +1,7 @@
 using System;
 using ExiledToolkit;
 using ExiledToolkit.Game;
+using ExiledToolkit.Kit;
 using Notifications.Core;
 
 namespace Notifications.Adapters;
@@ -13,15 +14,17 @@ namespace Notifications.Adapters;
 internal sealed class NoticeDesk : INoticeOut
 {
     private readonly Ledger _ledger;
+    private readonly SaveFollower _save;
     private readonly ToastBridge _toasts;
     private readonly PopupCloser _closer;
     private readonly PatchKit _hooks;
     private readonly Action<string> _log;
 
-    public NoticeDesk(Switches switches, Ledger ledger, ToastBridge toasts, PopupCloser closer, PatchKit hooks, Action<string> log)
+    public NoticeDesk(Switches switches, Ledger ledger, SaveFollower save, ToastBridge toasts, PopupCloser closer, PatchKit hooks, Action<string> log)
     {
         Switches = switches;
         _ledger = ledger;
+        _save = save;
         _toasts = toasts;
         _closer = closer;
         _hooks = hooks;
@@ -62,7 +65,11 @@ internal sealed class NoticeDesk : INoticeOut
 
     public bool Raise(Note note, Reopen? reopen) => _toasts.Show(note, reopen, reopen == null ? null : () => OpenPopup(reopen)) != 0;
 
-    public void Keep(Note note, Reopen? reopen) => _ledger.RecordLocal(note, DateTime.UtcNow, GameState.Stamp(), reopen);
+    public void Keep(Note note, Reopen? reopen)
+    {
+        _save.BeforeNotice(Clock.Now);
+        _ledger.RecordLocal(note, DateTime.UtcNow, GameState.Stamp(), reopen);
+    }
 
     /// <summary>A toast whose click does what it is given. Its id, or 0 when the Toolkit did not take it.</summary>
     public long Raise(Note note, Reopen? reopen, Action onClick) => _toasts.Show(note, reopen, onClick);

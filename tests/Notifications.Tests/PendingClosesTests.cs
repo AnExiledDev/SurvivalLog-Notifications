@@ -366,6 +366,30 @@ public class PendingClosesTests
         Assert.Equal("750 ms after the last close (wish popup), nothing is left to close", new CloseStep.Quiet(PopupKind.Wish).Line);
     }
 
+    [Fact]
+    public void ItIsIdleOnlyWhenNothingIsLeftToDo()
+    {
+        var settledAt = At(OpenFrame + 1 + Settled);
+
+        Assert.True(_closes.IsIdle);
+
+        _closes.Expect(PopupKind.Skill, OpenFrame, OpenTime);
+
+        Assert.False(_closes.IsIdle);
+
+        _closes.Due(OpenFrame + 1, At(OpenFrame + 1), Up(PopupKind.Skill));
+
+        Assert.False(_closes.IsIdle);
+
+        _closes.Due(OpenFrame + 1 + Settled, settledAt, Up());
+
+        Assert.False(_closes.IsIdle);
+
+        _closes.Due(OpenFrame + 11, settledAt + PendingCloses.QuietSeconds + 0.1, Up());
+
+        Assert.True(_closes.IsIdle);
+    }
+
     private static double At(int frame) => OpenTime + (frame - OpenFrame) * FrameSeconds;
 
     private static Func<PopupKind, PopupSight> Up(params PopupKind[] upKinds) => kind => upKinds.Contains(kind) ? PopupSight.Full : PopupSight.Down;

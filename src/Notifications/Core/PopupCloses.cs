@@ -150,11 +150,14 @@ public sealed class PendingCloses
         return _pending.Remove(kind);
     }
 
+    /// <summary>Nothing is left to close or to check on, so nothing can be due.</summary>
+    public bool IsIdle => _settling == null && _pending.Count == 0 && _lastClosed == null;
+
     /// <summary>The steps due in this frame: any give-ups, then at most one close or one settled close, then any last look.</summary>
     public IReadOnlyList<CloseStep> Due(int frame, double now, Func<PopupKind, PopupSight> sight)
     {
-        // Asked every frame and idle nearly always: then nothing can be due, and nothing is allocated.
-        if (_settling == null && _pending.Count == 0 && _lastClosed == null) return Array.Empty<CloseStep>();
+        // Nearly always idle, and then nothing is allocated.
+        if (IsIdle) return Array.Empty<CloseStep>();
 
         var steps = GiveUps(frame, now, sight);
 
